@@ -54,6 +54,8 @@ plugins {
 
 [role="multi-language-sample",subs="attributes+"]
 ```kotlin
+import me.champeau.gradle.igp.gitRepositories
+
 plugins {
     id("me.champeau.include.git") version "{gradle-project-version}"
 }

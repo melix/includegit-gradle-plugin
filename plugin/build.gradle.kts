@@ -6,6 +6,7 @@ plugins {
     `maven-publish`
     signing
     id("me.champeau.internal.build.functional-testing")
+    `kotlin-dsl`
 }
 
 group = "me.champeau.gradle.includegit"
