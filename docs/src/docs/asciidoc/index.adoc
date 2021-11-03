@@ -1,0 +1,222 @@
+= Included Git repositories plugin for Gradle
+Cédric Champeau
+
+This plugin adds support for including Git repositories as source dependencies in Gradle builds, making multi-repository development much easier to deal with!
+
+== Rationale
+
+Multi-repository development, while providing architectural advantages (reduced scope of libraries, faster development cycles, ...), are often painful for developers, especially when the number of modules being involved grows.
+
+For example, to develop a single feature, a developer may have to work on more than one repository at a time: a `core` module, living in repository `core`, and a `library` module depending on `core`, living in a repository `library`.
+
+The problem is that the development of a particular feature may require changes to both `core` and `library`.
+In that case, developers, in the Java ecosystem, typically rely on publishing _snapshots_ in their local Maven repository: make a change in `core`, publish a snapshot, then make changes to `library`, publish a snapshot, and repeat the loop.
+
+There are several problems with this approach:
+
+- it requires switching between projects, publishing intermediate artifacts to the local filesystem
+- it requires integrating `mavenLocal()` as a repository for your local builds, which is considered a bad practice (because it introduces non-reproducibility and makes the builds brittle)
+- for CI, it requires publishing to a snapshot repository for downstream builds to pick up the changes, meaning that you will often have to merge work-in-progress just to be able to test changes
+- it simply doesn't work if the library that you want to work with is not a first level dependency
+
+To improve the situation, Gradle users can use https://docs.gradle.org/current/samples/sample_composite_builds_basics.html#defining_and_using_a_composite_build[composite builds] to avoid publishing to a local repository.
+This makes the development cycle much faster already, by avoiding the `publishToMavenLocal` dance.
+However, there are some limitations with composite builds:
+
+- the included builds must be available locally, in a directory
+- it makes it hard, or even impossible, to setup on CI servers, unless you create an "integrating" project which hardcodes checkouts
+- it forces to change the configuration of the build to use composites
+
+In addition, there's a process problem with developing in a multi-repository environment: if the feature requires changes to multiple modules, in order to be able to integrate the changes, in particular on CI, you _have_ to publish either snapshots or pre-releases.
+The problem is that this is not necessarily acceptable: for example you might want to develop a feature in a branch of each repository, and only merge once the full feature is ready.
+
+Gradle also provides experimental support for https://blog.gradle.org/introducing-source-dependencies[source dependencies], but there are addressing a different problem.
+In particular, source dependencies are a replacement for regular dependencies: they require to change the dependency notation in builds with "source dependencies", including the branches.
+What we want to do, instead, is to keep our build files untouched, and substitute binary dependencies with sources.
+
+This plugin provides a solution to this problem by allowing to _include_ (in the sense of Gradle included builds) Git repositories, and specifying what branches/tags should be used.
+
+== Configuration
+
+This plugin is a **settings plugin** which must be applied to your `settings.gradle(.kts)` file:
+
+.Applying the plugin
+[role="multi-language-sample",subs="attributes+"]
+```groovy
+plugins {
+    id 'me.champeau.include.git' version '{gradle-project-version}'
+}
+```
+
+[role="multi-language-sample",subs="attributes+"]
+```kotlin
+plugins {
+    id("me.champeau.include.git") version "{gradle-project-version}"
+}
+```
+
+=== Declaring included Git repositories
+
+The plugin defines a `gitRepositories` extension which is used to declare included Git repositories.
+
+For example, say that you want to include `jdoctor` which is hosted at `https://github.com/melix/jdoctor/`, then you should write:
+
+.Including a Git repository
+[role="multi-language-sample",subs="attributes+"]
+```groovy
+gitRepositories {
+    include('jdoctor') {
+        uri = 'git@github.com:melix/jdoctor.git'
+        // optional, set what branch to use
+        branch = 'feature1'
+        // you can also use a tag
+        tag = 'v1.0'
+    }
+}
+```
+
+[role="multi-language-sample",subs="attributes+"]
+```kotlin
+gitRepositories {
+    include("jdoctor") {
+        uri.set("git@github.com:melix/jdoctor.git")
+        // optional, set what branch to use
+        branch.set("feature1")
+        // you can also use a tag
+        tag.set("v1.0")
+    }
+}
+```
+
+By default, the plugin will clone the included Git repositories in the `checkouts` directory of the project.
+If the repository is already cloned, the plugin will automatically perform an update every 24 hours.
+Alternatively, you can force it to update by adding `-Drefresh.git.repositories` to your Gradle command line.
+
+=== Using local copies instead of cloning
+
+Declaring included Git repositories will automatically make the plugin clone the remote repositories.
+This makes it very convenient to use on CI, since you will now be able to have branches which use other working branches from other repositories.
+However, it is likely that you already have local clones that you are already modifying and that you'd like to use for development.
+In this case, you can set the `local.git.XXXX` Gradle property, where `XXXX` is the included repository name, in your `gradle.properties` file, to point to your local copy.
+It is recommended to use the `gradle.properties` file located in your user home directory in this case:
+
+```
+local.git.jdoctor=/home/me/development/jdoctor
+```
+
+NOTE: if the property is found, the `branch` or `tag` configuration will be ignored.
+
+=== Automatic local copies
+
+Alternatively, you may have one or more directory with your checked out projects.
+In this case, the plugin provides a convenience which is going to automatically map directories to Git repository names.
+For this, you need to set the `auto.include.git.dirs` to the list of directories to scan.
+For example, say that you have:
+
+```
+/home/me
+      └── development
+          ├── gradle
+          │ ├── foo-gradle-plugin
+          │ └── gradle-core
+          └── micronaut
+              ├── micronaut-core
+              └── micronaut-data
+```
+
+Then you can set this in your `gradle.properties` file:
+
+```
+auto.include.git.dirs=/home/me/development/gradle,/home/me/development/micronaut
+```
+
+The plugin will automatically scan the `gradle` and `micronaut` directories, and map the `foo-gradle-plugin`, `gradle-core`, `micronaut-core` and `micronaut-data` directories to potential included Git repositories.
+If a build is including a repository named `micronaut-core`, then it will automatically pick it from the `micronaut-core` directory.
+
+This mechanism makes it extremely convenient to work with complex codebases with multiple Git repositories.
+
+=== Authentication
+
+The plugin supports 3 different authentication mechanisms:
+
+- basic authentication (username + password)
+- ssh with public key
+- ssh with password
+
+Authentication can be configured per repository:
+
+.Configuring authentication per repository
+[role="multi-language-sample",subs="attributes+"]
+```groovy
+gitRepositories {
+    include('myrepo') {
+        // ...
+        authentication {
+            basic {
+                username = '...'
+                password = '...'
+            }
+            // or
+            sshWithPublicKey()
+            // or
+            sshWithPublicKey {
+                privateKey = file("/path/to/private/key")
+            }
+            // or
+            sshWithPassword {
+                password = '...'
+            }
+        }
+    }
+}
+```
+
+[role="multi-language-sample",subs="attributes+"]
+```kotlin
+gitRepositories {
+    include("myrepo") {
+        // ...
+        authentication {
+            basic {
+                username.set("...")
+                password.set("...")
+            }
+            // or
+            sshWithPublicKey()
+            // or
+            sshWithPublicKey {
+                privateKey.set(file("/path/to/private/key"))
+            }
+            // or
+            sshWithPassword {
+                password.set("...")
+            }
+        }
+    }
+}
+```
+
+It is also possible to configure a default authentication mechanism, which will be used when authentication isn't configured specifically on a repository:
+
+.Configuring the default authentication mechanism
+[role="multi-language-sample",subs="attributes+"]
+```groovy
+gitRepositories {
+    defaultAuthentication {
+        sshWithPublicKey()
+    }
+}
+```
+
+[role="multi-language-sample",subs="attributes+"]
+```kotlin
+gitRepositories {
+    defaultAuthentication {
+        sshWithPublicKey()
+    }
+}
+```
+
+=== Known limitations
+
+The plugin won't work for plugin substitutions (e.g `includeBuild` in the `pluginManagement` section).

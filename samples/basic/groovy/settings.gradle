@@ -1,0 +1,12 @@
+plugins {
+    id 'me.champeau.includegit'
+}
+
+rootProject.name = "basic"
+
+gitRepositories {
+    include('openbeans') {
+        uri = 'https://github.com/melix/openbeans.git'
+        branch = 'master'
+    }
+}

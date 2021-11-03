@@ -1,0 +1,13 @@
+[versions]
+jgit = "5.13.0.202109080827-r"
+spock = "2.0-groovy-3.0"
+groovy = "3.0.9"
+
+[libraries]
+groovy = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+spock = { module = "org.spockframework:spock-core", version.ref = "spock" }
+jgit = { module = "org.eclipse.jgit:org.eclipse.jgit", version.ref = "jgit" }
+jgit-jsch = { module = "org.eclipse.jgit:org.eclipse.jgit.ssh.jsch", version.ref = "jgit" }
+
+[bundles]
+jgit = ["jgit", "jgit-jsch"]
