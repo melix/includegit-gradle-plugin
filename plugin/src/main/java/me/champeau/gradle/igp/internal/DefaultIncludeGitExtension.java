@@ -54,6 +54,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static me.champeau.gradle.igp.internal.ProviderUtils.forUseAtConfigurationTime;
+
 public abstract class DefaultIncludeGitExtension implements GitIncludeExtension {
     private final static Logger LOGGER = LoggerFactory.getLogger(DefaultIncludeGitExtension.class);
 
@@ -90,7 +92,8 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         });
         File repoDir = getCheckoutsDirectory().dir(repo.getName()).get().getAsFile();
         String localRepoProperty = LOCAL_GIT_PREFIX + repo.getName();
-        Provider<String> autoGitDirs = providers.gradleProperty(AUTO_GIT_DIRS);
+        Provider<String> autoGitDirs;
+        autoGitDirs = forUseAtConfigurationTime(providers.gradleProperty(AUTO_GIT_DIRS));
         Map<String, List<File>> autoDirs = Collections.emptyMap();
         if (autoGitDirs.isPresent()) {
             autoDirs = Arrays.stream(autoGitDirs.get().split("[,;:](\\s)?"))
@@ -102,8 +105,8 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                     .collect(Collectors.groupingBy(File::getName));
         }
         Map<String, List<File>> finalAutoDirs = autoDirs;
-        Provider<String> localRepo = providers.gradleProperty(localRepoProperty)
-                .orElse(providers.systemProperty(localRepoProperty))
+        Provider<String> localRepo = forUseAtConfigurationTime(providers.gradleProperty(localRepoProperty))
+                .orElse(forUseAtConfigurationTime(providers.systemProperty(localRepoProperty)))
                 .orElse(providers.provider(() -> {
                     List<File> files = finalAutoDirs.get(repo.getName());
                     if (files == null) {

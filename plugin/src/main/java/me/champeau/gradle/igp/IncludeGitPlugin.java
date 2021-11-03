@@ -11,6 +11,8 @@ import org.gradle.api.provider.ProviderFactory;
 import javax.inject.Inject;
 import java.io.File;
 
+import static me.champeau.gradle.igp.internal.ProviderUtils.forUseAtConfigurationTime;
+
 public abstract class IncludeGitPlugin implements Plugin<Settings> {
 
     public static final long DEFAULT_INTERVAL = 24 * 3600 * 1000;
@@ -23,12 +25,12 @@ public abstract class IncludeGitPlugin implements Plugin<Settings> {
     public void apply(Settings settings) {
         GitIncludeExtension gitRepositories = settings.getExtensions().create(GitIncludeExtension.class, "gitRepositories", DefaultIncludeGitExtension.class, settings);
         gitRepositories.getCheckoutsDirectory().set(new File(settings.getSettingsDir(), "checkouts"));
-        gitRepositories.getRefreshIntervalMillis().convention(getProviders()
-                .systemProperty(REFRESH_GIT_REPOSITORIES_PROPERTY)
-                .map(s -> s.isEmpty() ? 0L : Long.parseLong(s))
-                .orElse(DEFAULT_INTERVAL)
+        gitRepositories.getRefreshIntervalMillis().convention(
+                forUseAtConfigurationTime(getProviders().systemProperty(REFRESH_GIT_REPOSITORIES_PROPERTY))
+                        .map(s -> s.isEmpty() ? 0L : Long.parseLong(s))
+                        .orElse(DEFAULT_INTERVAL)
         );
-        settings.getGradle().settingsEvaluated(s -> ((DefaultIncludeGitExtension)gitRepositories).writeCheckoutMetadata());
+        settings.getGradle().settingsEvaluated(s -> ((DefaultIncludeGitExtension) gitRepositories).writeCheckoutMetadata());
     }
 
 }
