@@ -1,0 +1,34 @@
+name: Documentation
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'docs/**'
+jobs:
+  generate_documentation:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+          ssh-key: "${{ secrets.SSH_PRIVATE_KEY }}"
+      - name: Setup git
+        env:
+          GIT_SSH_COMMAND: "ssh -o StrictHostKeyChecking=no"
+          SSH_PRIVATE_KEY: "${{ secrets.SSH_PRIVATE_KEY }}"
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 700 -R ~/.ssh
+          eval "$(ssh-agent -s)"
+          ssh-add
+          ssh git@github.com || true
+          git config --global user.name 'GitHub bot'
+          git config --global user.email 'melix@users.noreply.github.com'
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      - uses: gradle/gradle-build-action@v2
+        with:
+          arguments: :docs:gitPublishPush
