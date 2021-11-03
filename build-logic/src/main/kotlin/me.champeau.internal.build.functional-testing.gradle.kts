@@ -35,6 +35,8 @@ supportedGradleVersions.forEach { gradleVersion ->
         }
 
         val functionalTest = tasks.register<Test>(taskName) {
+            group = LifecycleBasePlugin.VERIFICATION_GROUP
+            description = "Functional tests using Gradle $gradleVersion and $dsl DSL"
             inputs.files("../samples")
             testClassesDirs = functionalTestSourceSet.output.classesDirs
             classpath = functionalTestSourceSet.runtimeClasspath

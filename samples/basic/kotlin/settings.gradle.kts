@@ -4,9 +4,10 @@ plugins {
 
 rootProject.name = "basic"
 
-gitRepositories {
-    include("openbeans") {
-        uri.set("https://github.com/melix/openbeans.git")
-        branch.set("master")
+
+configure<me.champeau.gradle.igp.GitIncludeExtension> {
+    include("testlib0") {
+        uri.set("https://github.com/melix/includegit-gradle-plugin.git")
+        branch.set("testlib-0")
     }
 }

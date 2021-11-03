@@ -3,16 +3,20 @@ plugins {
 }
 
 val supportedGradleVersions: Set<String> by extra
+val unsupportedGradleVersions: Set<String> by extra
+
+fun toVersionList(versions: Set<String>) = versions.map {
+    if ("" == it) {
+        GradleVersion.current().version
+    } else {
+        it
+    }
+}.toSortedSet().joinToString(", ")
 
 tasks {
     asciidoctor {
-        val testedVersions = supportedGradleVersions.map {
-            if ("" == it) {
-                GradleVersion.current().version
-            } else {
-                it
-            }
-        }.toSortedSet().joinToString(", ")
+        val testedVersions = toVersionList(supportedGradleVersions)
+        val brokenVersions = toVersionList(unsupportedGradleVersions)
         attributes(mapOf(
                 "reproducible" to "",
                 "nofooter" to "",
@@ -21,7 +25,8 @@ tasks {
                 "source-highlighter" to "highlight.js",
                 "highlightjs-theme" to "equilibrium-light",
                 "highlightjsdir" to "highlight",
-                "tested-versions" to testedVersions
+                "tested-versions" to testedVersions,
+                "broken-versions" to brokenVersions
         ))
     }
 }

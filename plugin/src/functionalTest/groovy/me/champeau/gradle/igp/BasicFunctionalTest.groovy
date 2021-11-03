@@ -15,7 +15,7 @@ class BasicFunctionalTest extends AbstractFunctionalTest {
         }
 
         outputContains '''compileClasspath - Compile classpath for source set 'main'.
-\\--- me.champeau.openbeans:openbeans:0.0 -> project :openbeans
+\\--- com.acme.somelib:somelib1:0.0 -> project :testlib0
 '''
     }
 
@@ -23,7 +23,7 @@ class BasicFunctionalTest extends AbstractFunctionalTest {
         withSample 'basic'
 
         when:
-        fails 'dependencies', '--configuration', 'compileClasspath', '-Dlocal.git.openbeans=/xxx'
+        fails 'dependencies', '--configuration', 'compileClasspath', '-Dlocal.git.testlib0=/xxx'
 
         then:
         errorOutputContains '''Included build '/xxx' does not exist'''

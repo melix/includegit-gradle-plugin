@@ -5,8 +5,8 @@ plugins {
 rootProject.name = "basic"
 
 gitRepositories {
-    include('openbeans') {
-        uri = 'https://github.com/melix/openbeans.git'
-        branch = 'master'
+    include('testlib0') {
+        uri = 'https://github.com/melix/includegit-gradle-plugin.git'
+        branch = 'testlib-0'
     }
 }
