@@ -454,6 +454,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_local_copies_instead_of_cloning">Using local copies instead of cloning</a></li>
 <li><a href="#_automatic_local_copies">Automatic local copies</a></li>
 <li><a href="#_authentication">Authentication</a></li>
+</ul>
+</li>
+<li><a href="#comparison">Comparison of solutions</a>
+<ul class="sectlevel2">
 <li><a href="#_known_limitations">Known limitations</a></li>
 </ul>
 </li>
@@ -495,6 +499,9 @@ In that case, developers, in the Java ecosystem, typically rely on publishing <e
 <p>it requires switching between projects, publishing intermediate artifacts to the local filesystem</p>
 </li>
 <li>
+<p>makes it difficult to collaborate with others as they also need to checkout several projects</p>
+</li>
+<li>
 <p>it requires integrating <code>mavenLocal()</code> as a repository for your local builds, which is considered a bad practice (because it introduces non-reproducibility and makes the builds brittle)</p>
 </li>
 <li>
@@ -534,6 +541,9 @@ What we want to do, instead, is to keep our build files untouched, and substitut
 </div>
 <div class="paragraph">
 <p>This plugin provides a solution to this problem by allowing to <em>include</em> (in the sense of Gradle included builds) Git repositories, and specifying what branches/tags should be used.</p>
+</div>
+<div class="paragraph">
+<p>If you&#8217;re looking for a synthetic view of pros and cons of each solution, please refer to this <a href="#comparison">section in the docs</a>.</p>
 </div>
 </div>
 </div>
@@ -758,6 +768,131 @@ If a build is including a repository named <code>micronaut-core</code>, then it 
 }</code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="comparison">Comparison of solutions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This table summarizes some of the pros and cons of each solution, so that you can make a sound decision.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+<col style="width: 12.5%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Snapshots</th>
+<th class="tableblock halign-left valign-top">Included builds</th>
+<th class="tableblock halign-left valign-top">Source dependencies</th>
+<th class="tableblock halign-left valign-top">This plugin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:transitive-deps">Works for transitive dependencies</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:build-script-changes">Transparent to build scripts</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:local-vs-ci">Works consistently on CI and local</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:cloning">Handles cloning/checkout</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:publishing">Avoids publishing to artifact repository</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:branches">Supports multiple branches</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:cross-build-tools">Works cross build tools</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:different-tool-versions">Supports same build tool, different versions</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Depends on builds</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Depends on builds</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Depends on builds</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="#comp:upstream-testing">Continous upstream testing</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Manual</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Depends on dependencies</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Yes</strong></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Here&#8217;s a description of the different columns. This comparison is made for the <em>multi-repository</em> setup. It doesn&#8217;t mean that it would be the same, say, for a Gradle composite build living in a <em>single</em> repository:</p>
+</div>
+<div id="comp:transitive-deps" class="ulist">
+<ul>
+<li>
+<p><em>Works for transitive dependencies</em>: a build defines "direct" dependencies, which are typically used directly in source code, but often what you need to test is a transitive dependency. This column indicates if the solution makes it possible to substitute a transitive dependency with sources, transparently</p>
+</li>
+<li>
+<p><em>Transparent to build scripts</em>: some solutions, typically <code>SNAPSHOTS</code>, require changes to build scripts because you need to introduce <code>mavenLocal</code>, put a particular version, or introduce a first level dependency so that the changes are visible. Other solutions like this plugin only require applying the plugin, but leave your dependency declarations untouched.</p>
+</li>
+<li>
+<p><em>Works consistently on CI and local</em>: does the technical solution works consistently locally and on CI? Snapshots are the typical example of things which are hard to reason about because the local Maven repo may contain different dependencies than the remote snapshot repository. It also requires sync&#8217;ing and refreshing dependencies. Other solutions like composite builds work well for local development, but break as soon as you push on CI because the local repositories wouldn&#8217;t be available.</p>
+</li>
+<li>
+<p><em>Handles cloning/checkout</em>: does the solution handle checking out (or cloning in Git terminology) the dependency for you? Will it make the dependency visible as <em>sources</em> in your IDE?</p>
+</li>
+<li>
+<p><em>Avoids publishing to artifact repository</em>: Snapshots typically require publishing artifacts to a binary repository, or local file system, for other builds to "see" the changes. Some solutions like included builds do not, since they handle the dependency using sources instead.</p>
+</li>
+<li>
+<p><em>Supports multiple branches</em>: Snapshots work well, except when you need to integrate changes from different branches: either you have to publish different artifacts with different coordinates or versions to be able to test them in downstream projects, or you have to merge changes and push a snapshot. On the contrary, source dependencies handle branches gracefully because they don&#8217;t require any publication to a binary repository.</p>
+</li>
+<li>
+<p><em>Works cross build tools</em>: Snapshots can be consumed from different build tools, typically both Maven and Gradle. Source dependencies, included builds and this plugin require all participating builds to use Gradle and therefore are not suitable if you have a mix of build tools.</p>
+</li>
+<li>
+<p><em>Supports same build tool, different versions</em>: Snapshots are <em>binary</em> dependencies so the build tool which was used doesn&#8217;t matter. Included builds and source dependencies will use the version of the build tool which <em>includes</em> the other builds as the "driver". If there are incompatibilities between versions of the main build and the included ones, builds may fail.</p>
+</li>
+<li>
+<p><em>Continous upstream testing</em>: Does the solution make it possible to <em>continuously test</em> upstream dependencies? Typically, without changing your build scripts, it would be nice if you could test that the project is compatible with the latest <code>master</code> branch of a dependency. This plugin makes it quite simple to implement, while included builds require some manual setup. Snapshots won&#8217;t help.</p>
+</li>
+</ul>
 </div>
 <div class="sect2">
 <h3 id="_known_limitations">Known limitations</h3>
