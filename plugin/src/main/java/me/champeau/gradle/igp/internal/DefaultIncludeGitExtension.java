@@ -154,6 +154,9 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
     }
 
     public void writeCheckoutMetadata() {
+        if (checkoutMetadata == null) {
+            return;
+        }
         File metadataFile = getCheckoutsDirectory().file("checkouts.bin").get().getAsFile();
         File parentFile = metadataFile.getParentFile();
         parentFile.mkdirs();
