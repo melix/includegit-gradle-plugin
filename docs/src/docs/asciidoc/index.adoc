@@ -86,7 +86,7 @@ gitRepositories {
 
 [role="multi-language-sample",subs="attributes+"]
 ```kotlin
-configure<me.champeau.gradle.igp.GitIncludeExtension> {
+gitRepositories {
     include("jdoctor") {
         uri.set("git@github.com:melix/jdoctor.git")
         // optional, set what branch to use
@@ -182,7 +182,7 @@ gitRepositories {
 
 [role="multi-language-sample",subs="attributes+"]
 ```kotlin
-configure<me.champeau.gradle.igp.GitIncludeExtension> {
+gitRepositories {
     include("myrepo") {
         // ...
         authentication {
@@ -219,7 +219,7 @@ gitRepositories {
 
 [role="multi-language-sample",subs="attributes+"]
 ```kotlin
-configure<me.champeau.gradle.igp.GitIncludeExtension> {
+gitRepositories {
     defaultAuthentication {
         sshWithPublicKey()
     }

@@ -5,3 +5,5 @@
 This repository contains the sources for the `me.champeau.includegit` plugin which provides support for including Git repositories in Gradle builds.
 
 Please take a look at the [documentation](https://melix.github.io/includegit-gradle-plugin/index.html) for details.
+
+You can also refer to the current development version [snapshot documentation](https://melix.github.io/includegit-gradle-plugin/0.1.2-SNAPSHOT/index.html).
