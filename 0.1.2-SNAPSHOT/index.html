@@ -594,7 +594,7 @@ plugins {
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">configure&lt;me.champeau.gradle.igp.GitIncludeExtension&gt; {
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
     include("jdoctor") {
         uri.set("git@github.com:melix/jdoctor.git")
         // optional, set what branch to use
@@ -723,7 +723,7 @@ If a build is including a repository named <code>micronaut-core</code>, then it 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">configure&lt;me.champeau.gradle.igp.GitIncludeExtension&gt; {
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
     include("myrepo") {
         // ...
         authentication {
@@ -761,7 +761,7 @@ If a build is including a repository named <code>micronaut-core</code>, then it 
 </div>
 <div class="listingblock multi-language-sample">
 <div class="content">
-<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">configure&lt;me.champeau.gradle.igp.GitIncludeExtension&gt; {
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
     defaultAuthentication {
         sshWithPublicKey()
     }
