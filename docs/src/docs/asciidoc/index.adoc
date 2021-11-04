@@ -19,6 +19,7 @@ In that case, developers, in the Java ecosystem, typically rely on publishing _s
 There are several problems with this approach:
 
 - it requires switching between projects, publishing intermediate artifacts to the local filesystem
+- makes it difficult to collaborate with others as they also need to checkout several projects
 - it requires integrating `mavenLocal()` as a repository for your local builds, which is considered a bad practice (because it introduces non-reproducibility and makes the builds brittle)
 - for CI, it requires publishing to a snapshot repository for downstream builds to pick up the changes, meaning that you will often have to merge work-in-progress just to be able to test changes
 - it simply doesn't work if the library that you want to work with is not a first level dependency
@@ -39,6 +40,8 @@ In particular, source dependencies are a replacement for regular dependencies: t
 What we want to do, instead, is to keep our build files untouched, and substitute binary dependencies with sources.
 
 This plugin provides a solution to this problem by allowing to _include_ (in the sense of Gradle included builds) Git repositories, and specifying what branches/tags should be used.
+
+If you're looking for a synthetic view of pros and cons of each solution, please refer to this <<#comparison,section in the docs>>.
 
 == Configuration
 
@@ -222,6 +225,92 @@ configure<me.champeau.gradle.igp.GitIncludeExtension> {
     }
 }
 ```
+
+[[comparison]]
+== Comparison of solutions
+
+This table summarizes some of the pros and cons of each solution, so that you can make a sound decision.
+
+[cols="4,1,1,1,1"]
+|===
+||Snapshots|Included builds|Source dependencies|This plugin
+
+|<<comp:transitive-deps,Works for transitive dependencies>>
+|No
+|**Yes**
+|No
+|**Yes**
+
+|<<comp:build-script-changes,Transparent to build scripts>>
+|No
+|**Yes**
+|No
+|**Yes**
+
+|<<comp:local-vs-ci,Works consistently on CI and local>>
+|No
+|No
+|No
+|**Yes**
+
+|<<comp:cloning,Handles cloning/checkout>>
+|No
+|No
+|**Yes**
+|**Yes**
+
+|<<comp:publishing,Avoids publishing to artifact repository>>
+|No
+|No
+|No
+|**Yes**
+
+|<<comp:branches,Supports multiple branches>>
+|No
+|No
+|**Yes**
+|**Yes**
+
+|<<comp:cross-build-tools,Works cross build tools>>
+|**Yes**
+|No
+|No
+|No
+
+|<<comp:different-tool-versions,Supports same build tool, different versions>>
+|**Yes**
+|Depends on builds
+|Depends on builds
+|Depends on builds
+
+|<<comp:upstream-testing,Continous upstream testing>>
+|No
+|Manual
+|Depends on dependencies
+|**Yes**
+
+|===
+
+Here's a description of the different columns. This comparison is made for the _multi-repository_ setup. It doesn't mean that it would be the same, say, for a Gradle composite build living in a _single_ repository:
+
+[[comp:transitive-deps]]
+- _Works for transitive dependencies_: a build defines "direct" dependencies, which are typically used directly in source code, but often what you need to test is a transitive dependency. This column indicates if the solution makes it possible to substitute a transitive dependency with sources, transparently
+[[comp:build-script-changes]]
+- _Transparent to build scripts_: some solutions, typically `SNAPSHOTS`, require changes to build scripts because you need to introduce `mavenLocal`, put a particular version, or introduce a first level dependency so that the changes are visible. Other solutions like this plugin only require applying the plugin, but leave your dependency declarations untouched.
+[[comp:local-vs-ci]]
+- _Works consistently on CI and local_: does the technical solution works consistently locally and on CI? Snapshots are the typical example of things which are hard to reason about because the local Maven repo may contain different dependencies than the remote snapshot repository. It also requires sync'ing and refreshing dependencies. Other solutions like composite builds work well for local development, but break as soon as you push on CI because the local repositories wouldn't be available.
+[[comp:cloning]]
+- _Handles cloning/checkout_: does the solution handle checking out (or cloning in Git terminology) the dependency for you? Will it make the dependency visible as _sources_ in your IDE?
+[[comp:publishing]]
+- _Avoids publishing to artifact repository_: Snapshots typically require publishing artifacts to a binary repository, or local file system, for other builds to "see" the changes. Some solutions like included builds do not, since they handle the dependency using sources instead.
+[[comp:branches]]
+- _Supports multiple branches_: Snapshots work well, except when you need to integrate changes from different branches: either you have to publish different artifacts with different coordinates or versions to be able to test them in downstream projects, or you have to merge changes and push a snapshot. On the contrary, source dependencies handle branches gracefully because they don't require any publication to a binary repository.
+[[comp:cross-build-tools]]
+- _Works cross build tools_: Snapshots can be consumed from different build tools, typically both Maven and Gradle. Source dependencies, included builds and this plugin require all participating builds to use Gradle and therefore are not suitable if you have a mix of build tools.
+[[comp:different-tool-versions]]
+- _Supports same build tool, different versions_: Snapshots are _binary_ dependencies so the build tool which was used doesn't matter. Included builds and source dependencies will use the version of the build tool which _includes_ the other builds as the "driver". If there are incompatibilities between versions of the main build and the included ones, builds may fail.
+[[comp:upstream-testing]]
+- _Continous upstream testing_: Does the solution make it possible to _continuously test_ upstream dependencies? Typically, without changing your build scripts, it would be nice if you could test that the project is compatible with the latest `master` branch of a dependency. This plugin makes it quite simple to implement, while included builds require some manual setup. Snapshots won't help.
 
 === Known limitations
 
