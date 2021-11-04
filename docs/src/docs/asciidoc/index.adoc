@@ -1,6 +1,10 @@
 = Included Git repositories plugin for Gradle
 Cédric Champeau
 
+image:https://img.shields.io/badge/GitHub-Project%20Home-lightgrey["GitHub", link="https://github.com/melix/includegit-gradle-plugin"]
+image:https://github.com/melix/includegit-gradle-plugin/actions/workflows/build.yml/badge.svg["Build Status", link="https://github.com/melix/includegit-gradle-plugin/actions/workflows/build.yml"]
+image:https://img.shields.io/badge/license-ASF2-blue.svg["Apache License 2", link="https://www.apache.org/licenses/LICENSE-2.0.txt"]
+
 This plugin adds support for including Git repositories as source dependencies in Gradle builds, making multi-repository development much easier to deal with!
 
 This plugin has been successfully tested on Gradle {tested-versions}.
