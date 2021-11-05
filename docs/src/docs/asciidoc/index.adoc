@@ -55,7 +55,7 @@ This plugin is a **settings plugin** which must be applied to your `settings.gra
 [role="multi-language-sample",subs="attributes+"]
 ```groovy
 plugins {
-    id 'me.champeau.include.git' version '{gradle-project-version}'
+    id 'me.champeau.includegit' version '{gradle-project-version}'
 }
 ```
 
@@ -64,7 +64,7 @@ plugins {
 import me.champeau.gradle.igp.gitRepositories
 
 plugins {
-    id("me.champeau.include.git") version "{gradle-project-version}"
+    id("me.champeau.includegit") version "{gradle-project-version}"
 }
 ```
 
