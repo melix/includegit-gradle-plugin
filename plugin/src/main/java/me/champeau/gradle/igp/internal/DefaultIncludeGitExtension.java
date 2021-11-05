@@ -98,7 +98,7 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         autoGitDirs = forUseAtConfigurationTime(providers.gradleProperty(AUTO_GIT_DIRS));
         Map<String, List<File>> autoDirs = Collections.emptyMap();
         if (autoGitDirs.isPresent()) {
-            autoDirs = Arrays.stream(autoGitDirs.get().split("[,;:](\\s)?"))
+            autoDirs = Arrays.stream(autoGitDirs.get().split("[,;](\\s)?"))
                     .map(File::new)
                     .flatMap(dir ->
                             Arrays.stream(dir.listFiles())
