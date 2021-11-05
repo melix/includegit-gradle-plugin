@@ -25,6 +25,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
@@ -52,6 +53,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static me.champeau.gradle.igp.internal.ProviderUtils.forUseAtConfigurationTime;
@@ -141,8 +143,9 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                     for (int i = 0; i < size; i++) {
                         String uri = dis.readUTF();
                         String ref = dis.readUTF();
+                        String branch = dis.readUTF();
                         long lastUpdate = dis.readLong();
-                        checkoutMetadata.put(uri, new CheckoutMetadata(uri, ref, lastUpdate));
+                        checkoutMetadata.put(uri, new CheckoutMetadata(uri, ref, branch, lastUpdate));
                     }
                 } catch (IOException e) {
                     throw new GradleException("Unable to read checkout metadata", e);
@@ -171,6 +174,7 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                         try {
                             dos.writeUTF(value.getUri());
                             dos.writeUTF(value.getRef());
+                            dos.writeUTF(value.getBranch());
                             dos.writeLong(value.getLastUpdate());
                         } catch (IOException ex) {
                             throw new GradleException("Unable to write checkout metadata", ex);
@@ -183,12 +187,13 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
 
     private void cloneOrUpdate(File repoDir, IncludedGitRepo repo, DefaultAuthentication auth) {
         String uri = repo.getUri().get();
-        String rev = repo.getTag().orElse(repo.getBranch()).orElse("master").get();
-        CheckoutMetadata current = new CheckoutMetadata(uri, rev, System.currentTimeMillis());
+        String rev = repo.getCommit().getOrElse("");
+        String branchOrTag = repo.getTag().orElse(repo.getBranch()).orElse("").get();
+        CheckoutMetadata current = new CheckoutMetadata(uri, rev, branchOrTag, System.currentTimeMillis());
         if (repoDir.exists() && new File(repoDir, ".git").exists()) {
-            updateRepository(repoDir, uri, rev, current, auth);
+            updateRepository(repoDir, uri, rev, branchOrTag, current, auth);
         } else {
-            cloneRepository(repoDir, uri, rev, current, auth);
+            cloneRepository(repoDir, uri, rev, branchOrTag, current, auth);
         }
     }
 
@@ -228,27 +233,35 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         return command;
     }
 
-    private void cloneRepository(File repoDir, String uri, String rev, CheckoutMetadata current, DefaultAuthentication auth) {
+    private void cloneRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current, DefaultAuthentication auth) {
         LOGGER.info("Checking out {} ref {} in {}", uri, rev, repoDir);
         try {
             applyAuth(Git.cloneRepository()
                     .setURI(uri)
-                    .setBranch(rev)
+                    .setBranch(branchOrTag)
                     .setDirectory(repoDir), auth)
                     .call();
-        } catch (GitAPIException e) {
+            if (!rev.isEmpty()) {
+                try (Git git = Git.open(repoDir)) {
+                    git.checkout()
+                            .setName(rev)
+                            .call();
+                }
+            }
+        } catch (GitAPIException | IOException e) {
             throw new GradleException("Unable to clone repository contents: " + e.getMessage(), e);
         } finally {
             checkoutMetadata.put(uri, current);
         }
     }
 
-    private void updateRepository(File repoDir, String uri, String rev, CheckoutMetadata current, DefaultAuthentication auth) {
+    private void updateRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current, DefaultAuthentication auth) {
         if (checkoutMetadata.containsKey(uri)) {
             CheckoutMetadata old = checkoutMetadata.get(uri);
-            boolean sameRef = current.getRef().equals(old.getRef());
+            boolean sameRef = Objects.equals(current.getRef(), old.getRef());
+            boolean sameBranch = current.getBranch().equals(old.getBranch());
             boolean upToDate = current.getLastUpdate() - old.getLastUpdate() < getRefreshIntervalMillis().get();
-            if (sameRef && upToDate) {
+            if (sameRef && sameBranch && upToDate) {
                 return;
             }
         }
@@ -259,9 +272,29 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                 applyAuth(git.pull(), auth).call();
             }
             LOGGER.info("Checking out ref {} of {}", rev, uri);
-            git.checkout()
-                    .setName(rev)
-                    .call();
+            if (!rev.isEmpty()) {
+                git.checkout()
+                        .setName(rev)
+                        .call();
+            } else {
+                Ref resolve = git.getRepository().findRef(branchOrTag);
+                if (resolve == null) {
+                    List<Ref> refs = git.getRepository().getRefDatabase().getRefs();
+                    for (Ref ref : refs) {
+                        if (ref.getName().endsWith(branchOrTag)) {
+                            resolve = ref;
+                            break;
+                        }
+                    }
+                }
+                if (resolve != null) {
+                    git.checkout()
+                            .setName(resolve.getName())
+                            .call();
+                } else {
+                    throw new GradleException("Branch or tag " + branchOrTag + " not found");
+                }
+            }
         } catch (GitAPIException | IOException e) {
             throw new GradleException("Unable to update repository contents: " + e.getMessage(), e);
         } finally {

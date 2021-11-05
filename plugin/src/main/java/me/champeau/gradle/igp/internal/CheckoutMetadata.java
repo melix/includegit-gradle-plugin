@@ -18,16 +18,22 @@ package me.champeau.gradle.igp.internal;
 public class CheckoutMetadata {
     private final String uri;
     private final String ref;
+    private final String branch;
     private final long lastUpdate;
 
-    public CheckoutMetadata(String uri, String ref, long lastUpdate) {
+    public CheckoutMetadata(String uri, String ref, String branch, long lastUpdate) {
         this.uri = uri;
         this.ref = ref;
+        this.branch = branch;
         this.lastUpdate = lastUpdate;
     }
 
     public String getUri() {
         return uri;
+    }
+
+    public String getBranch() {
+        return branch;
     }
 
     public String getRef() {

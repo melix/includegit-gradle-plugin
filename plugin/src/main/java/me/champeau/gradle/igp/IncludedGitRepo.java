@@ -44,6 +44,12 @@ public interface IncludedGitRepo extends Named {
     Property<String> getTag();
 
     /**
+     * A specific commit to checkout.
+     * @return the commit property
+     */
+    Property<String> getCommit();
+
+    /**
      * Allows configuring the included build, in particular
      * dependency substitutions.
      * @param spec the configuration

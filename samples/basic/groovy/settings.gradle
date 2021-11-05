@@ -7,6 +7,12 @@ rootProject.name = "basic"
 gitRepositories {
     include('testlib0') {
         uri = 'https://github.com/melix/includegit-gradle-plugin.git'
-        branch = 'testlib-0'
+        if (gradle.startParameter.projectProperties.containsKey("useCommit")) {
+            println "Using commit"
+            commit = 'df01b5ffd'
+        } else {
+            println "Using branch"
+            branch = 'testlib-0'
+        }
     }
 }
