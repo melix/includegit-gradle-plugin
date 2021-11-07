@@ -49,7 +49,7 @@ If you're looking for a synthetic view of pros and cons of each solution, please
 
 == Configuration
 
-This plugin is a **settings plugin** which must be applied to your `settings.gradle(.kts)` file:
+WARNING: This plugin is a **settings plugin** which must be applied to your `settings.gradle(.kts)` file, **not** to a project `build.gradle(.kts)` file.
 
 .Applying the plugin
 [role="multi-language-sample",subs="attributes+"]
