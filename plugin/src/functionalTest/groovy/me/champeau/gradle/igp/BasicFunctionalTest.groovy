@@ -123,7 +123,7 @@ auto.include.git.dirs=${new File("../samples/repo").absolutePath}
         debug = true
 
         when:
-        run 'dependencies', '-s', '--configuration', 'compileClasspath', '-DcheckoutDir=here'
+        run 'dependencies', '--configuration', 'compileClasspath', '-PcheckoutDir=here'
 
         then:
         tasks {

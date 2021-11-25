@@ -17,5 +17,8 @@ gitRepositories {
             println("Using branch")
             branch.set("testlib-0")
         }
+        if (gradle.startParameter.projectProperties.containsKey("checkoutDir")) {
+            checkoutDirectory.set(file(gradle.startParameter.projectProperties.get("checkoutDir")!!))
+        }
     }
 }
