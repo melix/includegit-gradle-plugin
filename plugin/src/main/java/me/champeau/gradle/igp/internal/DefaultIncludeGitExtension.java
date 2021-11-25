@@ -86,13 +86,14 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         ProviderFactory providers = getProviders();
         readCheckoutMetadata();
         DefaultIncludedGitRepo repo = getObjects().newInstance(DefaultIncludedGitRepo.class, name);
+        repo.getCheckoutDirectory().convention(getCheckoutsDirectory().map(dir -> dir.dir(name)));
         spec.execute(repo);
         DefaultAuthentication auth = repo.getAuth().orElseGet(() -> {
             DefaultAuthentication result = getObjects().newInstance(DefaultAuthentication.class);
             defaultAuth.execute(result);
             return result;
         });
-        File repoDir = getCheckoutsDirectory().dir(repo.getName()).get().getAsFile();
+        File repoDir = repo.getCheckoutDirectory().get().getAsFile();
         String localRepoProperty = LOCAL_GIT_PREFIX + repo.getName();
         Provider<String> autoGitDirs;
         autoGitDirs = forUseAtConfigurationTime(providers.gradleProperty(AUTO_GIT_DIRS));

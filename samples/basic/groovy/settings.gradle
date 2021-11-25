@@ -14,5 +14,8 @@ gitRepositories {
             println "Using branch"
             branch = 'testlib-0'
         }
+        if (providers.systemProperty("checkoutDir").isPresent()) {
+            checkoutDirectory.set(file(providers.systemProperty("checkoutDir").get()))
+        }
     }
 }

@@ -17,6 +17,7 @@ package me.champeau.gradle.igp;
 
 import org.gradle.api.Action;
 import org.gradle.api.Named;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.provider.Property;
 
@@ -48,6 +49,12 @@ public interface IncludedGitRepo extends Named {
      * @return the commit property
      */
     Property<String> getCommit();
+
+    /**
+     * The directory to checkout the repository to.
+     * @return the directory
+     */
+    DirectoryProperty getCheckoutDirectory();
 
     /**
      * Allows configuring the included build, in particular

@@ -1,6 +1,7 @@
 package me.champeau.gradle.igp
 
 import me.champeau.includegit.AbstractFunctionalTest
+import spock.lang.Issue
 
 class BasicFunctionalTest extends AbstractFunctionalTest {
 
@@ -116,4 +117,24 @@ auto.include.git.dirs=${new File("../samples/repo").absolutePath}
 '''
     }
 
+    @Issue("https://github.com/melix/includegit-gradle-plugin/issues/10")
+    def "can use a specific directory for checkout"() {
+        withSample 'basic'
+        debug = true
+
+        when:
+        run 'dependencies', '-s', '--configuration', 'compileClasspath', '-DcheckoutDir=here'
+
+        then:
+        tasks {
+            succeeded ':dependencies'
+        }
+
+        file("here").directory
+        file("here/build.gradle").exists()
+
+        outputContains '''compileClasspath - Compile classpath for source set 'main'.
+\\--- com.acme.somelib:somelib1:0.0 -> project :testlib0
+'''
+    }
 }

@@ -27,14 +27,14 @@ import java.util.Optional;
 public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     private final String name;
     private final ObjectFactory objects;
-    private Action<? super ConfigurableIncludedBuild> spec = c -> {
-    };
+    private Action<? super ConfigurableIncludedBuild> spec;
     private DefaultAuthentication auth;
 
     @Inject
     public DefaultIncludedGitRepo(String name, ObjectFactory objects) {
         this.name = name;
         this.objects = objects;
+        this.spec = c -> c.setName(name);
     }
 
     @Override
