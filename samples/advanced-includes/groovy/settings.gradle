@@ -1,0 +1,23 @@
+plugins {
+    id 'me.champeau.includegit'
+}
+
+rootProject.name = "basic"
+
+gitRepositories {
+    if (System.getProperty("autoInclude")) {
+        include('testlib0') {
+            uri = 'https://github.com/melix/includegit-gradle-plugin.git'
+            branch = 'testlib-0'
+            autoInclude = Boolean.getBoolean('autoInclude')
+        }
+    } else if (System.getProperty("subdir")) {
+        include('testlib1') {
+            uri = 'https://github.com/melix/includegit-gradle-plugin.git'
+            branch = 'testlib-1'
+            includeBuild(System.getProperty("subdir")) {
+                name = 'testlib1'
+            }
+        }
+    }
+}

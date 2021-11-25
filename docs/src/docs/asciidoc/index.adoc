@@ -148,6 +148,38 @@ If a build is including a repository named `micronaut-core`, then it will automa
 
 This mechanism makes it extremely convenient to work with complex codebases with multiple Git repositories.
 
+=== Including sub-directories instead of the root
+
+In some cases, the root directory of the cloned project may not be the directory you want to include, or you may want to include several sub-directories as separate included builds.
+For this purpose, you can use the `includeBuild` statement which works exactly like Gradle's `includeBuild`, except that the root directory is the checked out directory:
+
+.Including a sub-directory of a Git repository
+[source,groovy,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include('jdoctor') {
+        uri = 'git@github.com:melix/jdoctor.git'
+        // This will include the "build-logic" directory of the repository
+        // instead of the whole project
+        includeBuild 'build-logic'
+    }
+}
+----
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include("jdoctor") {
+        uri.set("git@github.com:melix/jdoctor.git")
+        // This will include the "build-logic" directory of the repository
+        // instead of the whole project
+        includeBuild("build-logic")
+    }
+}
+----
+
+NOTE: You may use several `includeBuild` statements from a single repository.
+
 === Authentication
 
 The plugin supports 3 different authentication mechanisms:
@@ -229,6 +261,50 @@ gitRepositories {
     }
 }
 ```
+
+== Configuring checkout directories
+
+The plugin supports 2 different ways to configure the checkout directory:
+
+- either by configuring the root directory where all repositories are going to be checked out (by default, `checkouts`)
+
+.Configuring the root checkout directory
+[source,groovy,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    checkoutsDirectory.set(file('.'))
+}
+----
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    checkoutsDirectory.set(file("."))
+}
+----
+
+- or by configuring a checkout directory per included repository
+
+.Configuring the root checkout directory
+[source,groovy,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include('myrepo') {
+        // ...
+        checkoutDirectory = file('lib')
+    }
+}
+----
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include("myrepo") {
+        // ...
+        checkoutDirectory.set(file("lib"))
+    }
+}
+----
 
 [[comparison]]
 == Comparison of solutions

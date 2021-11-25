@@ -126,7 +126,7 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         } else {
             cloneOrUpdate(repoDir, repo, auth);
         }
-        settings.includeBuild(repoDir, repo::configure);
+        repo.configure(settings, repoDir);
     }
 
     @Override
