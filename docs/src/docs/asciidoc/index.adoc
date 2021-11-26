@@ -148,6 +148,36 @@ If a build is including a repository named `micronaut-core`, then it will automa
 
 This mechanism makes it extremely convenient to work with complex codebases with multiple Git repositories.
 
+=== Configuring the included build
+
+By default, the root directory of the cloned repository will be automatically included.
+You can tweak the configuration of the included build by calling the `includeBuild` method of the `gitRepositories` extension:
+
+.Configuring the included build
+[source,groovy,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include('jdoctor') {
+        uri = 'git@github.com:melix/jdoctor.git'
+        includeBuild {
+            name = 'other-name'
+        }
+    }
+}
+----
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include("jdoctor") {
+        uri.set("git@github.com:melix/jdoctor.git")
+        includeBuild {
+            name = "other-name"
+        }
+    }
+}
+----
+
 === Including sub-directories instead of the root
 
 In some cases, the root directory of the cloned project may not be the directory you want to include, or you may want to include several sub-directories as separate included builds.

@@ -61,7 +61,7 @@ public interface IncludedGitRepo extends Named {
      * dependency substitutions.
      * @param spec the configuration
      */
-    void includedBuild(Action<? super ConfigurableIncludedBuild> spec);
+    void includeBuild(Action<? super ConfigurableIncludedBuild> spec);
 
     /**
      * If set to true, the checked out project will be automatically

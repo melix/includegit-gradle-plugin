@@ -49,7 +49,7 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     }
 
     @Override
-    public void includedBuild(Action<? super ConfigurableIncludedBuild> spec) {
+    public void includeBuild(Action<? super ConfigurableIncludedBuild> spec) {
         Action<? super ConfigurableIncludedBuild> currentSpec = this.rootSpec;
         this.rootSpec = c -> {
             currentSpec.execute(c);

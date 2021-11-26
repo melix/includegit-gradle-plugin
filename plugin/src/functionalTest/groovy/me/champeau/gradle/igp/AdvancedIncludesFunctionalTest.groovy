@@ -43,4 +43,20 @@ class AdvancedIncludesFunctionalTest extends AbstractFunctionalTest {
         dirName << ["sub1", "sub2"]
     }
 
+    def "can configure the main included build"() {
+        withSample 'advanced-includes'
+
+        when:
+        run 'dependencies', '--configuration', 'compileClasspath', '-DmainIncludeName=hello'
+
+        then:
+        tasks {
+            succeeded ':dependencies'
+        }
+
+        outputContains '''compileClasspath - Compile classpath for source set 'main'.
+\\--- com.acme.somelib:somelib1:0.0 -> project :hello
+'''
+    }
+
 }

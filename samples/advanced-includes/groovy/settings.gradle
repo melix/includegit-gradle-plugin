@@ -11,6 +11,14 @@ gitRepositories {
             branch = 'testlib-0'
             autoInclude = Boolean.getBoolean('autoInclude')
         }
+    } else if (System.getProperty("mainIncludeName")) {
+        include('testlib0') {
+            uri = 'https://github.com/melix/includegit-gradle-plugin.git'
+            branch = 'testlib-0'
+            includeBuild {
+                name = System.getProperty('mainIncludeName')
+            }
+        }
     } else if (System.getProperty("subdir")) {
         include('testlib1') {
             uri = 'https://github.com/melix/includegit-gradle-plugin.git'
