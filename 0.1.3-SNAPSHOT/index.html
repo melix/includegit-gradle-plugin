@@ -453,9 +453,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_declaring_included_git_repositories">Declaring included Git repositories</a></li>
 <li><a href="#_using_local_copies_instead_of_cloning">Using local copies instead of cloning</a></li>
 <li><a href="#_automatic_local_copies">Automatic local copies</a></li>
+<li><a href="#_configuring_the_included_build">Configuring the included build</a></li>
+<li><a href="#_including_sub_directories_instead_of_the_root">Including sub-directories instead of the root</a></li>
 <li><a href="#_authentication">Authentication</a></li>
 </ul>
 </li>
+<li><a href="#_configuring_checkout_directories">Configuring checkout directories</a></li>
 <li><a href="#comparison">Comparison of solutions</a>
 <ul class="sectlevel2">
 <li><a href="#_known_limitations">Known limitations</a></li>
@@ -689,6 +692,82 @@ If a build is including a repository named <code>micronaut-core</code>, then it 
 </div>
 </div>
 <div class="sect2">
+<h3 id="_configuring_the_included_build">Configuring the included build</h3>
+<div class="paragraph">
+<p>By default, the root directory of the cloned repository will be automatically included.
+You can tweak the configuration of the included build by calling the <code>includeBuild</code> method of the <code>gitRepositories</code> extension:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring the included build</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">gitRepositories {
+    include('jdoctor') {
+        uri = 'git@github.com:melix/jdoctor.git'
+        includeBuild {
+            name = 'other-name'
+        }
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
+    include("jdoctor") {
+        uri.set("git@github.com:melix/jdoctor.git")
+        includeBuild {
+            name = "other-name"
+        }
+    }
+}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_including_sub_directories_instead_of_the_root">Including sub-directories instead of the root</h3>
+<div class="paragraph">
+<p>In some cases, the root directory of the cloned project may not be the directory you want to include, or you may want to include several sub-directories as separate included builds.
+For this purpose, you can use the <code>includeBuild</code> statement which works exactly like Gradle&#8217;s <code>includeBuild</code>, except that the root directory is the checked out directory:</p>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Including a sub-directory of a Git repository</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">gitRepositories {
+    include('jdoctor') {
+        uri = 'git@github.com:melix/jdoctor.git'
+        // This will include the "build-logic" directory of the repository
+        // instead of the whole project
+        includeBuild 'build-logic'
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
+    include("jdoctor") {
+        uri.set("git@github.com:melix/jdoctor.git")
+        // This will include the "build-logic" directory of the repository
+        // instead of the whole project
+        includeBuild("build-logic")
+    }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You may use several <code>includeBuild</code> statements from a single repository.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_authentication">Authentication</h3>
 <div class="paragraph">
 <p>The plugin supports 3 different authentication mechanisms:</p>
@@ -781,6 +860,64 @@ If a build is including a repository named <code>micronaut-core</code>, then it 
     }
 }</code></pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuring_checkout_directories">Configuring checkout directories</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The plugin supports 2 different ways to configure the checkout directory:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>either by configuring the root directory where all repositories are going to be checked out (by default, <code>checkouts</code>)</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring the root checkout directory</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">gitRepositories {
+    checkoutsDirectory.set(file('.'))
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
+    checkoutsDirectory.set(file("."))
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>or by configuring a checkout directory per included repository</p>
+</li>
+</ul>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="title">Configuring the root checkout directory</div>
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="groovy" class="language-groovy hljs">gitRepositories {
+    include('myrepo') {
+        // ...
+        checkoutDirectory = file('lib')
+    }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock multi-language-sample">
+<div class="content">
+<pre class="highlightjs highlight"><code data-lang="kotlin" class="language-kotlin hljs">gitRepositories {
+    include("myrepo") {
+        // ...
+        checkoutDirectory.set(file("lib"))
+    }
+}</code></pre>
 </div>
 </div>
 </div>
