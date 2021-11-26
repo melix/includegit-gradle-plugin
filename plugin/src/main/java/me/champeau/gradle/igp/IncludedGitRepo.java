@@ -61,7 +61,33 @@ public interface IncludedGitRepo extends Named {
      * dependency substitutions.
      * @param spec the configuration
      */
-    void includedBuild(Action<? super ConfigurableIncludedBuild> spec);
+    void includeBuild(Action<? super ConfigurableIncludedBuild> spec);
+
+    /**
+     * If set to true, the checked out project will be automatically
+     * included in the build.
+     * @return the auto include property.
+     */
+    Property<Boolean> getAutoInclude();
+
+    /**
+     * If this method is called, then the auto-include property will
+     * automatically be set to false.
+     * @param relativePath the relative path from the checkout directory
+     * to the project to include.
+     */
+    default void includeBuild(String relativePath) {
+        includeBuild(relativePath, s -> {});
+    }
+
+    /**
+     * If this method is called, then the auto-include property will
+     * automatically be set to false.
+     * @param relativePath the relative path from the checkout directory
+     * to the project to include.
+     * @param spec the spec of the included build
+     */
+    void includeBuild(String relativePath, Action<? super ConfigurableIncludedBuild> spec);
 
     /**
      * Configures authentication for this repository.

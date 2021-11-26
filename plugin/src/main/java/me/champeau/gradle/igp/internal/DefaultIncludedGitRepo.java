@@ -19,22 +19,28 @@ import me.champeau.gradle.igp.Authentication;
 import me.champeau.gradle.igp.IncludedGitRepo;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     private final String name;
     private final ObjectFactory objects;
-    private Action<? super ConfigurableIncludedBuild> spec;
+    private Action<ConfigurableIncludedBuild> rootSpec;
+    private final List<IncludedBuild> includes = new ArrayList<>();
     private DefaultAuthentication auth;
 
     @Inject
     public DefaultIncludedGitRepo(String name, ObjectFactory objects) {
         this.name = name;
         this.objects = objects;
-        this.spec = c -> c.setName(name);
+        this.rootSpec = c -> c.setName(name);
+        getAutoInclude().convention(true);
     }
 
     @Override
@@ -43,12 +49,27 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     }
 
     @Override
-    public void includedBuild(Action<? super ConfigurableIncludedBuild> spec) {
-        Action<? super ConfigurableIncludedBuild> currentSpec = this.spec;
-        this.spec = (Action<ConfigurableIncludedBuild>) c -> {
+    public void includeBuild(Action<? super ConfigurableIncludedBuild> spec) {
+        Action<? super ConfigurableIncludedBuild> currentSpec = this.rootSpec;
+        this.rootSpec = c -> {
             currentSpec.execute(c);
             spec.execute(c);
         };
+    }
+
+    /**
+     * If this method is called, then the auto-include property will
+     * automatically be set to false.
+     *
+     * @param relativePath the relative path from the checkout directory
+     * to the project to include.
+     * @param spec the spec of the included build
+     */
+    @Override
+    public void includeBuild(String relativePath, Action<? super ConfigurableIncludedBuild> spec) {
+        getAutoInclude().set(false);
+        getAutoInclude().finalizeValue();
+        includes.add(new IncludedBuild(relativePath, spec));
     }
 
     @Override
@@ -63,7 +84,25 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
         return Optional.ofNullable(auth);
     }
 
-    void configure(ConfigurableIncludedBuild build) {
-        spec.execute(build);
+    void configure(Settings settings, File checkoutDirectory) {
+        if (getAutoInclude().get()) {
+            settings.includeBuild(checkoutDirectory, rootSpec);
+        } else {
+            for (IncludedBuild include : includes) {
+                // unchecked cast because of inconsistency in Gradle API
+                //noinspection unchecked
+                settings.includeBuild(getCheckoutDirectory().dir(include.directory), (Action<ConfigurableIncludedBuild>) include.spec);
+            }
+        }
+    }
+
+    private static class IncludedBuild {
+        private final String directory;
+        private final Action<? super ConfigurableIncludedBuild> spec;
+
+        private IncludedBuild(String directory, Action<? super ConfigurableIncludedBuild> spec) {
+            this.directory = directory;
+            this.spec = spec;
+        }
     }
 }

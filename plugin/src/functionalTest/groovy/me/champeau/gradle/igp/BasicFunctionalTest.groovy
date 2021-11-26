@@ -120,7 +120,6 @@ auto.include.git.dirs=${new File("../samples/repo").absolutePath}
     @Issue("https://github.com/melix/includegit-gradle-plugin/issues/10")
     def "can use a specific directory for checkout"() {
         withSample 'basic'
-        debug = true
 
         when:
         run 'dependencies', '--configuration', 'compileClasspath', '-PcheckoutDir=here'
