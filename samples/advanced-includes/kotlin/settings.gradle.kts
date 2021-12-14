@@ -4,7 +4,7 @@ plugins {
     id("me.champeau.includegit")
 }
 
-rootProject.name = "basic"
+rootProject.name = "advanced-includes"
 
 
 gitRepositories {
