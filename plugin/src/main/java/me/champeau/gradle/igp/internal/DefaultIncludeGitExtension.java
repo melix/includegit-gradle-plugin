@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static me.champeau.gradle.igp.internal.ProviderUtils.forUseAtConfigurationTime;
 
@@ -101,9 +102,13 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
         if (autoGitDirs.isPresent()) {
             autoDirs = Arrays.stream(autoGitDirs.get().split("[,;](\\s)?"))
                     .map(File::new)
-                    .flatMap(dir ->
-                            Arrays.stream(dir.listFiles())
-                                    .filter(File::isDirectory)
+                    .flatMap(dir -> {
+                                File[] dirEntries = dir.listFiles();
+                                return dirEntries == null
+                                       ? Stream.empty()
+                                       : Arrays.stream(dirEntries)
+                                               .filter(File::isDirectory);
+                            }
                     )
                     .collect(Collectors.groupingBy(File::getName));
         }

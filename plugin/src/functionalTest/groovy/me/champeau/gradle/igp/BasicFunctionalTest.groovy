@@ -123,6 +123,30 @@ auto.include.git.dirs=${new File("../samples/repo").absolutePath.replace("\\", "
 '''
     }
 
+    def "when using auto include, do not produce NullPointerException with invalid configuration"() {
+        withSample 'basic'
+
+        file("gradle.properties") << """
+auto.include.git.dirs=${xxxParent.resolve("xxx").toFile().absolutePath.replace("\\", "/")}
+        """
+
+        when:
+        run 'dependencies', '--configuration', 'compileClasspath'
+
+        then:
+        tasks {
+            succeeded ':dependencies'
+        }
+
+        outputDoesNotContain 'NullPointerException'
+
+        outputDoesNotContain '''compileClasspath - Compile classpath for source set 'main'.
+\\--- com.acme.somelib:somelib1:0.0 -> project :testlib0
+     +--- org.apache.commons:commons-math3:3.6.1 FAILED
+     \\--- dummy:for-test:1.0 FAILED
+'''
+    }
+
     @Issue("https://github.com/melix/includegit-gradle-plugin/issues/10")
     def "can use a specific directory for checkout"() {
         withSample 'basic'
