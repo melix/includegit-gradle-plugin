@@ -79,15 +79,15 @@ class AbstractFunctionalTest extends Specification {
     }
 
     void outputContains(String text) {
-        assert output.contains(text)
+        assert output.normalize().contains(text.normalize())
     }
 
     void outputDoesNotContain(String text) {
-        assert !output.contains(text)
+        assert !output.normalize().contains(text.normalize())
     }
 
     void errorOutputContains(String text) {
-        assert errorOutput.contains(text)
+        assert errorOutput.normalize().contains(text.normalize())
     }
 
     void tasks(@DelegatesTo(value = TaskExecutionGraph, strategy = Closure.DELEGATE_FIRST) Closure spec) {

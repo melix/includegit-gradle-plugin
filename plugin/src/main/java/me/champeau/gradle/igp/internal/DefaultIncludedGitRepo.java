@@ -31,7 +31,7 @@ import java.util.Optional;
 public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     private final String name;
     private final ObjectFactory objects;
-    private Action<ConfigurableIncludedBuild> rootSpec;
+    private final Action<ConfigurableIncludedBuild> rootSpec;
     private final List<IncludedBuild> includes = new ArrayList<>();
     private DefaultAuthentication auth;
 
@@ -50,11 +50,10 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
 
     @Override
     public void includeBuild(Action<? super ConfigurableIncludedBuild> spec) {
-        Action<? super ConfigurableIncludedBuild> currentSpec = this.rootSpec;
-        this.rootSpec = c -> {
-            currentSpec.execute(c);
+        includeBuild(".", c -> {
+            rootSpec.execute(c);
             spec.execute(c);
-        };
+        });
     }
 
     /**
@@ -67,8 +66,10 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
      */
     @Override
     public void includeBuild(String relativePath, Action<? super ConfigurableIncludedBuild> spec) {
-        getAutoInclude().set(false);
-        getAutoInclude().finalizeValue();
+        if (getAutoInclude().get()) {
+            getAutoInclude().set(false);
+            getAutoInclude().finalizeValue();
+        }
         includes.add(new IncludedBuild(relativePath, spec));
     }
 

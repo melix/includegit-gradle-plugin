@@ -4,7 +4,7 @@ plugins {
     id("me.champeau.includegit")
 }
 
-rootProject.name = "basic"
+rootProject.name = "advanced-includes"
 
 
 gitRepositories {
@@ -28,6 +28,23 @@ gitRepositories {
             branch.set("testlib-1")
             includeBuild(System.getProperty("subdir")) {
                 name = "testlib1"
+            }
+            if (System.getProperty("subdir2") != null) {
+                if (System.getProperty("subdir2") != "") {
+                    includeBuild(System.getProperty("subdir2")) {
+                        name = "testlib1_2"
+                        dependencySubstitution {
+                            substitute(module("com.acme.somelib:somelib2")).with(project(":"))
+                        }
+                    }
+                } else {
+                    includeBuild {
+                        name = "testlib"
+                        dependencySubstitution {
+                            substitute(module("com.acme.somelib:somelib2")).with(project(":"))
+                        }
+                    }
+                }
             }
         }
     }
