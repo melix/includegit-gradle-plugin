@@ -16,7 +16,8 @@ class AdvancedIncludesFunctionalTest extends AbstractFunctionalTest {
         }
 
         outputContains '''compileClasspath - Compile classpath for source set 'main'.
-\\--- com.acme.somelib:somelib1:0.0 FAILED
++--- com.acme.somelib:somelib1:0.0 FAILED
+\\--- com.acme.somelib:somelib2 FAILED
 '''
 
     }
@@ -34,13 +35,72 @@ class AdvancedIncludesFunctionalTest extends AbstractFunctionalTest {
         file("checkouts/testlib1/$dirName").directory
         file("checkouts/testlib1/$dirName/build.gradle").exists()
 
-        outputContains '''compileClasspath - Compile classpath for source set 'main'.
-\\--- com.acme.somelib:somelib1:0.0 -> project :testlib1
+        switch (dirName) {
+            case 'sub1':
+                outputContains '''compileClasspath - Compile classpath for source set 'main'.
++--- com.acme.somelib:somelib1:0.0 -> project :testlib1
+|    \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+\\--- com.acme.somelib:somelib2 FAILED
+'''
+                break;
+
+            case 'sub2':
+                outputContains '''compileClasspath - Compile classpath for source set 'main'.
++--- com.acme.somelib:somelib1:0.0 FAILED
+\\--- com.acme.somelib:somelib2 -> project :testlib1
      \\--- org.apache.commons:commons-math3:3.6.1 FAILED
 '''
+                break;
+        }
 
         where:
         dirName << ["sub1", "sub2"]
+    }
+
+    def "can include multiple subdirectories of a checkout"() {
+        withSample 'advanced-includes'
+
+        when:
+        run 'dependencies', '--configuration', 'compileClasspath', '-Dsubdir=sub1', '-Dsubdir2=sub2'
+
+        then:
+        tasks {
+            succeeded ':dependencies'
+        }
+        file("checkouts/testlib1/sub1").directory
+        file("checkouts/testlib1/sub1/build.gradle").exists()
+        file("checkouts/testlib1/sub2").directory
+        file("checkouts/testlib1/sub2/build.gradle").exists()
+
+        outputContains '''compileClasspath - Compile classpath for source set 'main'.
++--- com.acme.somelib:somelib1:0.0 -> project :testlib1
+|    \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+\\--- com.acme.somelib:somelib2 -> project :testlib1_2
+     \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+'''
+    }
+
+    def "can include subdirectories and root directory of a checkout"() {
+        withSample 'advanced-includes'
+
+        when:
+        run 'dependencies', '--configuration', 'compileClasspath', '-Dsubdir=sub1', '-Dsubdir2='
+
+        then:
+        tasks {
+            succeeded ':dependencies'
+        }
+        file("checkouts/testlib1/sub1").directory
+        file("checkouts/testlib1/sub1/build.gradle").exists()
+        file("checkouts/testlib1/sub2").directory
+        file("checkouts/testlib1/sub2/build.gradle").exists()
+
+        outputContains '''compileClasspath - Compile classpath for source set 'main'.
++--- com.acme.somelib:somelib1:0.0 -> project :testlib1
+|    \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+\\--- com.acme.somelib:somelib2 -> project :testlib
+     \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+'''
     }
 
     def "can configure the main included build"() {
@@ -55,7 +115,9 @@ class AdvancedIncludesFunctionalTest extends AbstractFunctionalTest {
         }
 
         outputContains '''compileClasspath - Compile classpath for source set 'main'.
-\\--- com.acme.somelib:somelib1:0.0 -> project :hello
++--- com.acme.somelib:somelib1:0.0 -> project :hello
+|    \\--- org.apache.commons:commons-math3:3.6.1 FAILED
+\\--- com.acme.somelib:somelib2 FAILED
 '''
     }
 
