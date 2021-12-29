@@ -92,7 +92,7 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
             for (IncludedBuild include : includes) {
                 // unchecked cast because of inconsistency in Gradle API
                 //noinspection unchecked
-                settings.includeBuild(getCheckoutDirectory().dir(include.directory), (Action<ConfigurableIncludedBuild>) include.spec);
+                settings.includeBuild(new File(checkoutDirectory, include.directory), (Action<ConfigurableIncludedBuild>) include.spec);
             }
         }
     }
