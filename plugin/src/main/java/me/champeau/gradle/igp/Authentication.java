@@ -43,7 +43,8 @@ public interface Authentication {
 
     /**
      * Configures SSH with a public key, allowing configuration
-     * of the private key location.
+     * of the private key location, as well as an encryption
+     * passphrase if the key is encrypted.
      * @param spec the key configuration
      */
     void sshWithPublicKey(Action<? super KeyConfiguration> spec);
@@ -80,5 +81,6 @@ public interface Authentication {
      */
     interface KeyConfiguration {
         RegularFileProperty getPrivateKey();
+        Property<String> getPassphrase();
     }
 }

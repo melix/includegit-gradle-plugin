@@ -26,11 +26,7 @@ import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.OpenSshConfig;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
 import org.eclipse.jgit.util.FS;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
@@ -42,18 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -226,7 +212,11 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                 protected JSch createDefaultJSch(FS fs) throws JSchException {
                     JSch defaultJSch = super.createDefaultJSch( fs );
                     if (keyConfig.getPrivateKey().isPresent()) {
-                        defaultJSch.addIdentity(keyConfig.getPrivateKey().get().getAsFile().getAbsolutePath());
+                        defaultJSch.addIdentity(
+                                keyConfig.getPrivateKey().get().getAsFile().getAbsolutePath(),
+                                // passing null here will do the same thing as the single argument overload.
+                                keyConfig.getPassphrase().getOrNull()
+                        );
                     }
                     return defaultJSch;
                 }
