@@ -57,13 +57,6 @@ public class DefaultAuthentication implements Authentication {
     }
 
     @Override
-    public void sshWithEncryptedPublicKey(Action<? super EncryptedKeyConfiguration> spec) {
-        none();
-        keyConfiguration = objects.newInstance(EncryptedKeyConfiguration.class);
-        spec.execute((EncryptedKeyConfiguration) keyConfiguration);
-    }
-
-    @Override
     public void sshWithPassword(Action<? super WithPassword> spec) {
         none();
         sshWithPassword = objects.newInstance(WithPassword.class);
@@ -72,15 +65,6 @@ public class DefaultAuthentication implements Authentication {
 
     Optional<KeyConfiguration> getSshWithPublicKey() {
         return Optional.ofNullable(keyConfiguration);
-    }
-
-    Optional<EncryptedKeyConfiguration> getSshWithEncryptedPublicKey() {
-        // instanceof acts as a nullcheck as well here
-        if (keyConfiguration instanceof EncryptedKeyConfiguration) {
-            return Optional.of((EncryptedKeyConfiguration) keyConfiguration);
-        } else {
-            return Optional.empty();
-        }
     }
 
     Optional<BasicAuth> getBasicAuth() {

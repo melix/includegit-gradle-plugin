@@ -43,18 +43,11 @@ public interface Authentication {
 
     /**
      * Configures SSH with a public key, allowing configuration
-     * of the private key location.
+     * of the private key location, as well as an encryption
+     * passphrase if the key is encrypted.
      * @param spec the key configuration
      */
     void sshWithPublicKey(Action<? super KeyConfiguration> spec);
-
-    /**
-     * Configures SSH with an encrypted public key, allowing configuration
-     * of the private key location as well as a string to use as the passphrase.
-     * @param spec the key configuration
-     */
-    void sshWithEncryptedPublicKey(Action<? super EncryptedKeyConfiguration> spec);
-
 
     /**
      * Configures SSH with password authentication.
@@ -88,12 +81,6 @@ public interface Authentication {
      */
     interface KeyConfiguration {
         RegularFileProperty getPrivateKey();
-    }
-
-    /**
-     * Represents an encrypted key configuration.
-     */
-    interface EncryptedKeyConfiguration extends KeyConfiguration {
         Property<String> getPassphrase();
     }
 }
