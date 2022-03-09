@@ -236,6 +236,7 @@ gitRepositories {
             // or
             sshWithPublicKey {
                 privateKey = file("/path/to/private/key")
+                // Leave this out if your key file is not encrypted.
                 passphrase = '...'
             }
             // or
@@ -262,6 +263,7 @@ gitRepositories {
             // or
             sshWithPublicKey {
                 privateKey.set(file("/path/to/private/key"))
+                // Leave this out if your key file is not encrypted.
                 passphrase.set("...")
             }
             // or
