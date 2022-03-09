@@ -214,7 +214,7 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                     if (keyConfig.getPrivateKey().isPresent()) {
                         defaultJSch.addIdentity(
                                 keyConfig.getPrivateKey().get().getAsFile().getAbsolutePath(),
-                                // passing null here will do the same thing as the single argument override.
+                                // passing null here will do the same thing as the single argument overload.
                                 keyConfig.getPassphrase().getOrNull()
                         );
                     }
