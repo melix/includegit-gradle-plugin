@@ -75,6 +75,7 @@ public class DefaultAuthentication implements Authentication {
     }
 
     Optional<EncryptedKeyConfiguration> getSshWithEncryptedPublicKey() {
+        // instanceof acts as a nullcheck as well here
         if (keyConfiguration instanceof EncryptedKeyConfiguration) {
             return Optional.of((EncryptedKeyConfiguration) keyConfiguration);
         } else {
