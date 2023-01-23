@@ -362,8 +362,8 @@ gitRepositories {
 gitRepositories {
     include("my-project") {
         // ...
-        codeReady { event ->
-            println("Project cloned in ${event.checkoutDirectory}")
+        codeReady {
+            println("Project cloned in ${checkoutDirectory}")
         }
     }
 }
