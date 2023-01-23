@@ -33,6 +33,7 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     private final ObjectFactory objects;
     private final Action<ConfigurableIncludedBuild> rootSpec;
     private final List<IncludedBuild> includes = new ArrayList<>();
+    private final List<Action<? super CodeReadyEvent>> codeReadyEvents = new ArrayList<>();
     private DefaultAuthentication auth;
 
     @Inject
@@ -54,6 +55,11 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
             rootSpec.execute(c);
             spec.execute(c);
         });
+    }
+
+    @Override
+    public void codeReady(Action<? super CodeReadyEvent> configuration) {
+        codeReadyEvents.add(configuration);
     }
 
     /**
@@ -86,6 +92,9 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
     }
 
     void configure(Settings settings, File checkoutDirectory) {
+        if (!codeReadyEvents.isEmpty()) {
+            fireCodeReadyEvents(checkoutDirectory);
+        }
         if (getAutoInclude().get()) {
             settings.includeBuild(checkoutDirectory, rootSpec);
         } else {
@@ -94,6 +103,23 @@ public abstract class DefaultIncludedGitRepo implements IncludedGitRepo {
                 //noinspection unchecked
                 settings.includeBuild(new File(checkoutDirectory, include.directory), (Action<ConfigurableIncludedBuild>) include.spec);
             }
+        }
+    }
+
+    private void fireCodeReadyEvents(File checkoutDirectory) {
+        CodeReadyEvent codeReadyEvent = new CodeReadyEvent() {
+            @Override
+            public IncludedGitRepo getIncludedGitRepo() {
+                return DefaultIncludedGitRepo.this;
+            }
+
+            @Override
+            public File getCheckoutDirectory() {
+                return checkoutDirectory;
+            }
+        };
+        for (Action<? super CodeReadyEvent> action : codeReadyEvents) {
+            action.execute(codeReadyEvent);
         }
     }
 

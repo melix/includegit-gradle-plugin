@@ -23,6 +23,8 @@ class BasicFunctionalTest extends AbstractFunctionalTest {
 \\--- com.acme.somelib:somelib1:0.0 -> project :testlib0
 '''
 
+        outputContains 'Code ready'
+
         where:
         useCommit << [false, true]
     }
