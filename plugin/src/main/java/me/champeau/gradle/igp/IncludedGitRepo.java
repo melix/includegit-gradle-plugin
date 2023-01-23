@@ -21,6 +21,8 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.provider.Property;
 
+import java.io.File;
+
 /**
  * Configures an included Git repository.
  */
@@ -94,4 +96,35 @@ public interface IncludedGitRepo extends Named {
      * @param config the authentication configuration
      */
     void authentication(Action<? super Authentication> config);
+
+    /**
+     * Allows executing some code right after a repository has been checked out, typically
+     * before the directory is included in a composite build.
+     * @param configuration the configuration action
+     */
+    void codeReady(Action<? super CodeReadyEvent> configuration);
+
+    /**
+     * Base interface for events.
+     */
+    interface Event {
+        /**
+         * The git repository for which the event was called
+         * @return the git repository
+         */
+        IncludedGitRepo getIncludedGitRepo();
+    }
+
+    /**
+     * Event triggered when the code of an included repository
+     * is ready (e.g checked out). It is _not_ recommended to alter
+     * the contents of the directory as it will likely break updates.
+     */
+    interface CodeReadyEvent extends Event {
+        /**
+         * The directory where the project is checked out.
+         * @return the directory
+         */
+        File getCheckoutDirectory();
+    }
 }

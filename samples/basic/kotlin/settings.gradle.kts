@@ -20,5 +20,9 @@ gitRepositories {
         if (gradle.startParameter.projectProperties.containsKey("checkoutDir")) {
             checkoutDirectory.set(file(gradle.startParameter.projectProperties.get("checkoutDir")!!))
         }
+        codeReady { event ->
+            println "Code ready"
+            println "Checkout directory: ${event.checkoutDirectory}"
+        }
     }
 }
