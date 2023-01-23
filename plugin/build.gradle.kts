@@ -18,7 +18,11 @@ java {
 }
 
 dependencies {
-    implementation(libs.bundles.jgit)
+    implementation(libs.bundles.jgit) {
+        // Replaced by a fork
+        exclude(group = "com.jcraft", module = "jsch")
+    }
+    implementation(libs.jsch)
 
     testFixturesApi(libs.groovy)
     testFixturesApi(libs.spock)
