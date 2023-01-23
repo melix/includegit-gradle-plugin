@@ -336,6 +336,40 @@ gitRepositories {
 }
 ----
 
+== Performing actions before the build is included
+
+It is possible to perform actions right after a project has been cloned and before it is included.
+This can be useful, for example, if the project needs to be analyzed in order to properly configure the included builds.
+
+The action will always be called, even if sources are already available locally.
+It is **not** recommended to mutate sources as part of this callback, since this will likely break updating the sources later.
+
+.Executing code before the build is included
+[source,groovy,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include('my-project') {
+    // ...
+        codeReady { event ->
+            println("Project cloned in ${event.checkoutDirectory}")
+        }
+    }
+}
+----
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    include("my-project") {
+        // ...
+        codeReady { event ->
+            println("Project cloned in ${event.checkoutDirectory}")
+        }
+    }
+}
+----
+
+
 [[comparison]]
 == Comparison of solutions
 
