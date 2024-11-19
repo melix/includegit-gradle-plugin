@@ -13,7 +13,7 @@ group = "me.champeau.gradle.includegit"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 

@@ -20,17 +20,10 @@ dependencyResolutionManagement {
 gradle.beforeProject {
     extra.set("supportedGradleVersions", setOf(
             "", // current,
-            "6.2",
-            "6.3",
-            "6.4",
-            "6.5",
-            "6.6",
-            "6.7.1",
-            "6.8.2",
-            "6.9",
             "7.1.1",
             "7.2",
-            "7.3"
+            "7.3",
+            "8.11"
     ))
     extra.set("unsupportedGradleVersions", setOf(
             "6.0.x",

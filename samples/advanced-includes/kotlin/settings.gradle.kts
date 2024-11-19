@@ -34,14 +34,14 @@ gitRepositories {
                     includeBuild(System.getProperty("subdir2")) {
                         name = "testlib1_2"
                         dependencySubstitution {
-                            substitute(module("com.acme.somelib:somelib2")).with(project(":"))
+                            substitute(module("com.acme.somelib:somelib2")).using(project(":"))
                         }
                     }
                 } else {
                     includeBuild {
                         name = "testlib"
                         dependencySubstitution {
-                            substitute(module("com.acme.somelib:somelib2")).with(project(":"))
+                            substitute(module("com.acme.somelib:somelib2")).using(project(":"))
                         }
                     }
                 }
