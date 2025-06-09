@@ -13,12 +13,12 @@ group = "me.champeau.gradle.includegit"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }
 
 dependencies {
-    implementation(libs.bundles.jgit)
+    implementation(libs.bundles.jgit) // TODO(tsr): delete
 
     testFixturesApi(libs.groovy)
     testFixturesApi(libs.spock)
