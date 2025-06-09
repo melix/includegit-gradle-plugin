@@ -18,6 +18,8 @@ package me.champeau.gradle.igp.internal;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import me.champeau.gradle.igp.Authentication;
 import me.champeau.gradle.igp.GitIncludeExtension;
 import me.champeau.gradle.igp.IncludedGitRepo;
@@ -38,6 +40,7 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.process.ExecOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -241,24 +244,55 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
 
     private void cloneRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current, DefaultAuthentication auth) {
         LOGGER.info("Checking out {} ref {} in {}", uri, rev, repoDir);
+
         try {
-            applyAuth(Git.cloneRepository()
-                    .setURI(uri)
-                    .setBranch(branchOrTag)
-                    .setDirectory(repoDir), auth)
-                    .call();
+            //applyAuth(Git.cloneRepository() // TODO(tsr): figure out how to apply authentication
+            // TODO(tsr): cleanup logging
+            System.out.printf("...git clone %s %s --branch %s...%n", uri, repoDir, branchOrTag);
+            ExecOutput result = getProviders().exec(spec -> {
+                spec.commandLine("git", "clone", uri, repoDir, "--branch", branchOrTag);
+                spec.setIgnoreExitValue(true);
+            });
+            result.getResult().get().assertNormalExitValue();
+            System.out.printf("git clone result: %s%n", result.getResult().get());
+
+            String checkout = branchOrTag;
             if (!rev.isEmpty()) {
-                try (Git git = Git.open(repoDir)) {
-                    git.checkout()
-                            .setName(rev)
-                            .call();
-                }
+                checkout = rev;
             }
-        } catch (GitAPIException | IOException e) {
+            final String c = checkout;
+
+            System.out.printf("...git checkout %s in %s... %n", c, repoDir);
+            result = getProviders().exec(spec -> {
+                spec.workingDir(repoDir);
+                spec.commandLine("git", "checkout", c);
+                spec.setIgnoreExitValue(true);
+            });
+            result.getResult().get().assertNormalExitValue();
+            System.out.printf("git checkout result: %s%n", result.getResult().get());
+        } catch (Exception e) {
             throw new GradleException("Unable to clone repository contents: " + e.getMessage(), e);
         } finally {
             checkoutMetadata.put(uri, current);
         }
+        //try {
+        //    applyAuth(Git.cloneRepository()
+        //            .setURI(uri)
+        //            .setBranch(branchOrTag)
+        //            .setDirectory(repoDir), auth)
+        //            .call();
+        //    if (!rev.isEmpty()) {
+        //        try (Git git = Git.open(repoDir)) {
+        //            git.checkout()
+        //                    .setName(rev)
+        //                    .call();
+        //        }
+        //    }
+        //} catch (GitAPIException | IOException e) {
+        //    throw new GradleException("Unable to clone repository contents: " + e.getMessage(), e);
+        //} finally {
+        //    checkoutMetadata.put(uri, current);
+        //}
     }
 
     private void updateRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current, DefaultAuthentication auth) {
@@ -271,40 +305,89 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
                 return;
             }
         }
-        try (Git git = Git.open(repoDir)) {
-            String fullBranch = git.getRepository().getFullBranch();
+
+        try {
+            // TODO(tsr): cleanup logging
+            System.out.printf("git symbolic-ref HEAD%n");
+            ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
+            ExecOutput result = getProviders().exec(spec -> {
+                spec.workingDir(repoDir);
+                spec.commandLine("git", "symbolic-ref", "HEAD");
+                spec.setStandardOutput(stdOut);
+                spec.setIgnoreExitValue(true);
+            });
+            result.getResult().get().assertNormalExitValue();
+
+            String fullBranch = stdOut.toString(Charset.defaultCharset());
+            System.out.printf("git symbolic-ref HEAD out = %s%n", fullBranch);
+
             if (fullBranch.startsWith("refs/heads/")) {
                 LOGGER.info("Pulling from {}", uri);
-                applyAuth(git.pull(), auth).call();
-            }
-            LOGGER.info("Checking out ref {} of {}", rev, uri);
-            if (!rev.isEmpty()) {
-                git.checkout()
-                        .setName(rev)
-                        .call();
-            } else {
-                Ref resolve = git.getRepository().findRef(branchOrTag);
-                if (resolve == null) {
-                    List<Ref> refs = git.getRepository().getRefDatabase().getRefs();
-                    for (Ref ref : refs) {
-                        if (ref.getName().endsWith(branchOrTag)) {
-                            resolve = ref;
-                            break;
-                        }
-                    }
-                }
-                if (resolve != null) {
-                    git.checkout()
-                            .setName(resolve.getName())
-                            .call();
+                //applyAuth(git.pull(), auth).call(); // TODO(tsr): figure out how to apply authentication
+                result = getProviders().exec(spec -> {
+                    spec.workingDir(repoDir);
+                    spec.commandLine("git", "pull");
+                    spec.setIgnoreExitValue(true);
+                });
+                result.getResult().get().assertNormalExitValue();
+
+                if (!rev.isEmpty()) {
+                    result = getProviders().exec(spec -> {
+                        spec.workingDir(repoDir);
+                        spec.commandLine("git", "checkout", rev);
+                        spec.setIgnoreExitValue(true);
+                    });
+                    result.getResult().get().assertNormalExitValue();
                 } else {
-                    throw new GradleException("Branch or tag " + branchOrTag + " not found");
+                    // TODO(tsr): ref.getName().endsWith(branchOrTag) etc.
+                    result = getProviders().exec(spec -> {
+                        spec.workingDir(repoDir);
+                        spec.commandLine("git", "checkout", branchOrTag);
+                        spec.setIgnoreExitValue(true);
+                    });
+                    result.getResult().get().assertNormalExitValue();
                 }
             }
-        } catch (GitAPIException | IOException e) {
+        } catch (Exception e) {
             throw new GradleException("Unable to update repository contents: " + e.getMessage(), e);
         } finally {
             checkoutMetadata.put(uri, current);
         }
+
+        //try (Git git = Git.open(repoDir)) {
+        //    String fullBranch = git.getRepository().getFullBranch();
+        //    if (fullBranch.startsWith("refs/heads/")) {
+        //        LOGGER.info("Pulling from {}", uri);
+        //        applyAuth(git.pull(), auth).call();
+        //    }
+        //    LOGGER.info("Checking out ref {} of {}", rev, uri);
+        //    if (!rev.isEmpty()) {
+        //        git.checkout()
+        //                .setName(rev)
+        //                .call();
+        //    } else {
+        //        Ref resolve = git.getRepository().findRef(branchOrTag);
+        //        if (resolve == null) {
+        //            List<Ref> refs = git.getRepository().getRefDatabase().getRefs();
+        //            for (Ref ref : refs) {
+        //                if (ref.getName().endsWith(branchOrTag)) {
+        //                    resolve = ref;
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //        if (resolve != null) {
+        //            git.checkout()
+        //                    .setName(resolve.getName())
+        //                    .call();
+        //        } else {
+        //            throw new GradleException("Branch or tag " + branchOrTag + " not found");
+        //        }
+        //    }
+        //} catch (GitAPIException | IOException e) {
+        //    throw new GradleException("Unable to update repository contents: " + e.getMessage(), e);
+        //} finally {
+        //    checkoutMetadata.put(uri, current);
+        //}
     }
 }
