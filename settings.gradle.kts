@@ -9,8 +9,6 @@ rootProject.name = "gradle-includegit-plugin"
 include("docs")
 include("plugin")
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()
@@ -23,7 +21,7 @@ gradle.beforeProject {
             "7.1.1",
             "7.2",
             "7.3",
-            "8.11"
+            "8.14.2",
     ))
     extra.set("unsupportedGradleVersions", setOf(
             "6.0.x",
