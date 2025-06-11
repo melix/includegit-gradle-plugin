@@ -245,17 +245,47 @@ public abstract class DefaultIncludeGitExtension implements GitIncludeExtension 
     private void cloneRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current, DefaultAuthentication auth) {
         LOGGER.info("Checking out {} ref {} in {}", uri, rev, repoDir);
 
+        // Note that we need to do this in a more verbose way with `git init`, `git remote add...`, `git fetch`, and
+        // `git checkout` due to intermittent issues with Gradle filesystem watching. `git clone` will fail when run in
+        // a non-empty directory, which is often the case because Gradle will add a `.gradle/file-system.probe` file
+        // very quickly. `git init` (etc) doesn't suffer this same limitation.
         try {
             //applyAuth(Git.cloneRepository() // TODO(tsr): figure out how to apply authentication
             // TODO(tsr): cleanup logging
             System.out.printf("...git clone %s %s --branch %s...%n", uri, repoDir, branchOrTag);
+            // First we `git init`
             ExecOutput result = getProviders().exec(spec -> {
-                spec.commandLine("git", "clone", uri, repoDir, "--branch", branchOrTag);
+                spec.workingDir(repoDir);
+                spec.commandLine("git", "init");
                 spec.setIgnoreExitValue(true);
             });
             result.getResult().get().assertNormalExitValue();
-            System.out.printf("git clone result: %s%n", result.getResult().get());
 
+            // Then we `git remote add origin <uri>` to set the remote
+            result = getProviders().exec(spec -> {
+                spec.workingDir(repoDir);
+                spec.commandLine("git", "remote", "add", "origin", uri);
+                spec.setIgnoreExitValue(true);
+            });
+            result.getResult().get().assertNormalExitValue();
+
+            // Then `git fetch`
+            result = getProviders().exec(spec -> {
+                spec.workingDir(repoDir);
+                spec.commandLine("git", "fetch");
+                spec.setIgnoreExitValue(true);
+            });
+            result.getResult().get().assertNormalExitValue();
+
+            //result = getProviders().exec(spec -> {
+            //    spec.commandLine("git", "clone", uri, repoDir, "--branch", branchOrTag);
+            //    spec.setIgnoreExitValue(true);
+            //});
+            //result.getResult().get().assertNormalExitValue();
+            //System.out.printf("git clone result: %s%n", result.getResult().get());
+            System.out.println("`git init` && `git remote add ...` && `git fetch` successful!");
+
+            // And finally `git checkout <branchOrTag>`
             String checkout = branchOrTag;
             if (!rev.isEmpty()) {
                 checkout = rev;
