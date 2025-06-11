@@ -17,7 +17,7 @@ package me.champeau.gradle.igp.internal;
 
 import me.champeau.gradle.igp.Authentication;
 import me.champeau.gradle.igp.IncludedGitRepo;
-import me.champeau.gradle.igp.internal.git.DefaultAuthentication;
+import me.champeau.gradle.igp.internal.git.jgit.DefaultAuthentication;
 import org.gradle.api.Action;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.Settings;

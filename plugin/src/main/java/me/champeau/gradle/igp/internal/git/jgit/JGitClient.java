@@ -1,4 +1,4 @@
-package me.champeau.gradle.igp.internal.git;
+package me.champeau.gradle.igp.internal.git.jgit;
 
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -7,8 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import me.champeau.gradle.igp.internal.CheckoutMetadata;
+import me.champeau.gradle.igp.internal.git.GitClientStrategy;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
 import org.eclipse.jgit.api.TransportCommand;
@@ -64,14 +64,8 @@ public class JGitClient implements GitClientStrategy {
   public void updateRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current,
       DefaultAuthentication auth) {
 
-    if (checkoutMetadata.containsKey(uri)) {
-      CheckoutMetadata old = checkoutMetadata.get(uri);
-      boolean sameRef = Objects.equals(current.getRef(), old.getRef());
-      boolean sameBranch = current.getBranch().equals(old.getBranch());
-      boolean upToDate = current.getLastUpdate() - old.getLastUpdate() < refreshIntervalMillis;
-      if (sameRef && sameBranch && upToDate) {
-        return;
-      }
+    if (containsKey(checkoutMetadata, uri, current, refreshIntervalMillis)) {
+      return;
     }
 
     try (Git git = Git.open(repoDir)) {
