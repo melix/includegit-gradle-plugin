@@ -24,6 +24,12 @@ import org.gradle.api.provider.Property;
  */
 public interface GitIncludeExtension {
     /**
+     * Determines whether to use the git CLI. Defaults to false, or the {@code jgit} implementation.
+     * @return the git cli property
+     */
+    Property<Boolean> getUseGitCli();
+
+    /**
      * Determines, in milliseconds, how often the repository should be updated.
      * By default, 24 hours.
      * @return the refresh interval property

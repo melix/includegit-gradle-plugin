@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.champeau.gradle.igp.internal;
+package me.champeau.gradle.igp.internal.git;
 
 import me.champeau.gradle.igp.Authentication;
 import org.gradle.api.Action;
