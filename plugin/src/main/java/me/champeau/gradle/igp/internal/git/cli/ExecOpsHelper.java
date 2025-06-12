@@ -26,13 +26,17 @@ class ExecOpsHelper {
       this.exitCode = exitCode;
     }
 
+    boolean isSuccess() {
+      return exitCode == 0;
+    }
+
     void assertNormalExitValue() {
       if (exitCode != 0) {
         throw new IllegalStateException(String.format("Command failed with exit code %d: %s", exitCode, stdErr));
       }
     }
   }
-  
+
   private final ProviderFactory providers;
 
   ExecOpsHelper(ProviderFactory providers) {
@@ -43,8 +47,12 @@ class ExecOpsHelper {
     return exec(command, null, null);
   }
 
-  Result exec(@Nonnull Iterable<String> command, @Nullable File workingDir) {
+  Result exec(@Nonnull Iterable<String> command, @Nonnull File workingDir) {
     return exec(command, workingDir, null);
+  }
+
+  Result exec(@Nonnull Iterable<String> command, @Nonnull Action<ExecSpec> action) {
+    return exec(command, null, action);
   }
 
   Result exec(@Nonnull Iterable<String> command, @Nullable File workingDir, @Nullable Action<ExecSpec> action) {

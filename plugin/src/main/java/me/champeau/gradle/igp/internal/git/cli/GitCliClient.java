@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import me.champeau.gradle.igp.internal.CheckoutMetadata;
 import me.champeau.gradle.igp.internal.git.GitClientStrategy;
+import me.champeau.gradle.igp.internal.git.cli.ExecOpsHelper.Result;
 import me.champeau.gradle.igp.internal.git.jgit.DefaultAuthentication;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.ProviderFactory;
@@ -13,7 +14,7 @@ import org.slf4j.Logger;
 public class GitCliClient implements GitClientStrategy {
 
   private final Logger logger;
-  private final ProviderFactory providers;
+  private final ExecOpsHelper ops;
   private final Map<String, CheckoutMetadata> checkoutMetadata;
   private final long refreshIntervalMillis;
 
@@ -21,13 +22,16 @@ public class GitCliClient implements GitClientStrategy {
       long refreshIntervalMillis) {
 
     this.logger = logger;
-    this.providers = providers;
+    this.ops = new ExecOpsHelper(providers);
     this.checkoutMetadata = checkoutMetadata;
     this.refreshIntervalMillis = refreshIntervalMillis;
   }
 
   public void cloneRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current,
       DefaultAuthentication auth) {
+
+    checkAuth(auth);
+
     logger.info("Checking out {} ref {} in {}", uri, rev, repoDir);
 
     // Note that we need to do this in a more verbose way with `git init`, `git remote add...`, `git fetch`, and
@@ -35,8 +39,6 @@ public class GitCliClient implements GitClientStrategy {
     // a non-empty directory, which is often the case because Gradle will add a `.gradle/file-system.probe` file
     // very quickly. `git init` (etc) doesn't suffer this same limitation.
     try {
-      ExecOpsHelper ops = new ExecOpsHelper(providers);
-
       ops.exec(List.of("git", "init"));
       ops.exec(List.of("git", "remote", "add", "origin", uri));
       ops.exec(List.of("git", "fetch"));
@@ -48,25 +50,17 @@ public class GitCliClient implements GitClientStrategy {
     }
   }
 
-  private String getRev(String rev, String branchOrTag) {
-    if (!rev.isEmpty()) {
-      return rev;
-    } else {
-      return branchOrTag;
-    }
-  }
-
   public void updateRepository(File repoDir, String uri, String rev, String branchOrTag, CheckoutMetadata current,
       DefaultAuthentication auth) {
+
+    checkAuth(auth);
 
     if (containsKey(checkoutMetadata, uri, current, refreshIntervalMillis)) {
       return;
     }
 
     try {
-      ExecOpsHelper ops = new ExecOpsHelper(providers);
-
-      ExecOpsHelper.Result result = ops.exec(List.of("git", "symbolic-ref", "HEAD"));
+      Result result = ops.exec(List.of("git", "symbolic-ref", "HEAD"));
 
       String fullBranch = result.stdOut;
       if (fullBranch.startsWith("refs/heads/")) {
@@ -78,11 +72,23 @@ public class GitCliClient implements GitClientStrategy {
       if (!rev.isEmpty()) {
         ops.exec(List.of("git", "checkout", rev));
       } else {
-        // TODO(tsr): try to validate that branchOrTag is a real reference
-        //  ref.getName().endsWith(branchOrTag) etc.
         String resolve = branchOrTag;
+
+        Result revParseResult = ops.exec(
+            List.of("git", "rev-parse", "--verify", resolve), spec -> spec.setIgnoreExitValue(true)
+        );
+
+        if (!revParseResult.isSuccess()) {
+          Result showRefResult = ops.exec(List.of("git", "show-ref", "--branches", "--tags"));
+          // If we find `branchOrTag` in the list of all fully-qualified refs, use that, otherwise null and throw below
+          resolve = showRefResult.stdOut.lines()
+              .filter(line -> line.endsWith(branchOrTag))
+              .findFirst()
+              .orElse(null);
+        }
+
         if (resolve != null) {
-          ops.exec(List.of("git", "checkout", branchOrTag));
+          ops.exec(List.of("git", "checkout", resolve));
         } else {
           throw new GradleException("Branch or tag " + branchOrTag + " not found");
         }
@@ -91,6 +97,24 @@ public class GitCliClient implements GitClientStrategy {
       throw new GradleException("Unable to update repository contents: " + e.getMessage(), e);
     } finally {
       checkoutMetadata.put(uri, current);
+    }
+  }
+
+  /**
+   * {@link GitCliClient} uses authentication provided by the user environment. Setting custom authentication via the
+   * DSL is unsupported in this case, so we warn users.
+   */
+  private void checkAuth(DefaultAuthentication auth) {
+    if (auth.isUserConfigured()) {
+      logger.warn("Custom authentication via the authentication DSL is incompatible with use of the git CLI client, and is therefore ignored.");
+    }
+  }
+
+  private String getRev(String rev, String branchOrTag) {
+    if (!rev.isEmpty()) {
+      return rev;
+    } else {
+      return branchOrTag;
     }
   }
 }
