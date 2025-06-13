@@ -1,5 +1,4 @@
 [versions]
-#jgit = "6.10.0.202406032230-r"
 jgit = "7.3.0.202506031305-r"
 spock = "2.0-groovy-3.0"
 groovy = "3.0.9"

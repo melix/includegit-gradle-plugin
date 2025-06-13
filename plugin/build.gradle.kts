@@ -18,7 +18,7 @@ java {
 }
 
 dependencies {
-    implementation(libs.bundles.jgit) // TODO(tsr): delete
+    implementation(libs.bundles.jgit)
 
     testFixturesApi(libs.groovy)
     testFixturesApi(libs.spock)
