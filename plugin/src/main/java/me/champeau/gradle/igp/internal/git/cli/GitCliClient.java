@@ -39,10 +39,10 @@ public class GitCliClient implements GitClientStrategy {
     // a non-empty directory, which is often the case because Gradle will add a `.gradle/file-system.probe` file
     // very quickly. `git init` (etc) doesn't suffer this same limitation.
     try {
-      ops.exec(List.of("git", "init"));
-      ops.exec(List.of("git", "remote", "add", "origin", uri));
-      ops.exec(List.of("git", "fetch"));
-      ops.exec(List.of("git", "checkout", getRev(rev, branchOrTag)));
+      ops.exec(repoDir, List.of("git", "init"));
+      ops.exec(repoDir, List.of("git", "remote", "add", "origin", uri));
+      ops.exec(repoDir, List.of("git", "fetch"));
+      ops.exec(repoDir, List.of("git", "checkout", getRev(rev, branchOrTag)));
     } catch (Exception e) {
       throw new GradleException("Unable to clone repository contents: " + e.getMessage(), e);
     } finally {
@@ -60,26 +60,27 @@ public class GitCliClient implements GitClientStrategy {
     }
 
     try {
-      Result result = ops.exec(List.of("git", "symbolic-ref", "HEAD"));
+      Result result = ops.exec(repoDir, List.of("git", "symbolic-ref", "HEAD"));
 
       String fullBranch = result.stdOut;
       if (fullBranch.startsWith("refs/heads/")) {
         logger.info("Pulling from {}", uri);
-        ops.exec(List.of("git", "pull"));
+        ops.exec(repoDir, List.of("git", "pull"));
       }
 
       logger.info("Checking out ref {} of {}", rev, uri);
       if (!rev.isEmpty()) {
-        ops.exec(List.of("git", "checkout", rev));
+        ops.exec(repoDir, List.of("git", "checkout", rev));
       } else {
         String resolve = branchOrTag;
 
         Result revParseResult = ops.exec(
+            repoDir,
             List.of("git", "rev-parse", "--verify", resolve), spec -> spec.setIgnoreExitValue(true)
         );
 
         if (!revParseResult.isSuccess()) {
-          Result showRefResult = ops.exec(List.of("git", "show-ref", "--branches", "--tags"));
+          Result showRefResult = ops.exec(repoDir, List.of("git", "show-ref", "--branches", "--tags"));
           // If we find `branchOrTag` in the list of all fully-qualified refs, use that, otherwise null and throw below
           resolve = showRefResult.stdOut.lines()
               .filter(line -> line.endsWith(branchOrTag))
@@ -88,7 +89,7 @@ public class GitCliClient implements GitClientStrategy {
         }
 
         if (resolve != null) {
-          ops.exec(List.of("git", "checkout", resolve));
+          ops.exec(repoDir, List.of("git", "checkout", resolve));
         } else {
           throw new GradleException("Branch or tag " + branchOrTag + " not found");
         }

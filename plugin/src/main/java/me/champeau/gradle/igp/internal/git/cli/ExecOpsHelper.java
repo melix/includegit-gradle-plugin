@@ -44,18 +44,18 @@ class ExecOpsHelper {
   }
 
   Result exec(@Nonnull Iterable<String> command) {
-    return exec(command, null, null);
+    return exec(null, command, null);
   }
 
-  Result exec(@Nonnull Iterable<String> command, @Nonnull File workingDir) {
-    return exec(command, workingDir, null);
+  Result exec(@Nonnull File workingDir, @Nonnull Iterable<String> command) {
+    return exec(workingDir, command, null);
   }
 
   Result exec(@Nonnull Iterable<String> command, @Nonnull Action<ExecSpec> action) {
-    return exec(command, null, action);
+    return exec(null, command, action);
   }
 
-  Result exec(@Nonnull Iterable<String> command, @Nullable File workingDir, @Nullable Action<ExecSpec> action) {
+  Result exec(@Nullable File workingDir, @Nonnull Iterable<String> command, @Nullable Action<ExecSpec> action) {
     ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
     ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
     AtomicReference<File> theWorkingDir = new AtomicReference<>();
