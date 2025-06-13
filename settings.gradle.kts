@@ -21,6 +21,7 @@ gradle.beforeProject {
             "7.1.1",
             "7.2",
             "7.3",
+            "8.11"
     ))
     extra.set("unsupportedGradleVersions", setOf(
             "6.0.x",
