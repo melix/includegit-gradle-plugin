@@ -18,6 +18,7 @@ dependencyResolutionManagement {
 gradle.beforeProject {
     extra.set("supportedGradleVersions", setOf(
             "", // current,
+            "7.1.1",
             "7.2",
             "7.3",
     ))
