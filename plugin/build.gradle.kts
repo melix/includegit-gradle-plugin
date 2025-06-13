@@ -34,12 +34,12 @@ publishing {
     }
 }
 
-// signing {
-//     useGpgCmd()
-//     publishing.publications.configureEach {
-//         sign(this)
-//     }
-// }
+signing {
+    useGpgCmd()
+    publishing.publications.configureEach {
+        sign(this)
+    }
+}
 
 tasks.withType<Test> {
     useJUnitPlatform()
