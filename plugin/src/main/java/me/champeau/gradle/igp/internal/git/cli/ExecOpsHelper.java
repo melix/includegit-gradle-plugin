@@ -1,12 +1,11 @@
 package me.champeau.gradle.igp.internal.git.cli;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.gradle.api.Action;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.process.ExecOutput;
 import org.gradle.process.ExecSpec;
@@ -14,12 +13,12 @@ import org.gradle.process.ExecSpec;
 class ExecOpsHelper {
 
   static class Result {
-    String stdOut;
-    String stdErr;
+    Provider<String> stdOut;
+    Provider<String> stdErr;
     File workingDir;
     int exitCode;
 
-    Result(String stdOut, String stdErr, File workingDir, int exitCode) {
+    Result(Provider<String> stdOut, Provider<String> stdErr, File workingDir, int exitCode) {
       this.stdOut = stdOut;
       this.stdErr = stdErr;
       this.workingDir = workingDir;
@@ -56,16 +55,14 @@ class ExecOpsHelper {
   }
 
   Result exec(@Nullable File workingDir, @Nonnull Iterable<String> command, @Nullable Action<ExecSpec> action) {
-    ByteArrayOutputStream stdOut = new ByteArrayOutputStream();
-    ByteArrayOutputStream stdErr = new ByteArrayOutputStream();
     AtomicReference<File> theWorkingDir = new AtomicReference<>();
 
     ExecOutput result = providers.exec(spec -> {
-      spec.workingDir(workingDir);
       spec.commandLine(command);
-      spec.setStandardOutput(stdOut);
-      spec.setErrorOutput(stdErr);
 
+      if (workingDir != null) {
+        spec.workingDir(workingDir);
+      }
       if (action != null) {
         action.execute(spec);
       }
@@ -74,8 +71,8 @@ class ExecOpsHelper {
     });
 
     return new Result(
-        stdOut.toString(Charset.defaultCharset()),
-        stdErr.toString(Charset.defaultCharset()),
+        result.getStandardOutput().getAsText(),
+        result.getStandardError().getAsText(),
         theWorkingDir.get(),
         result.getResult().get().getExitValue()
     );
