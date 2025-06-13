@@ -13,7 +13,7 @@ group = "me.champeau.gradle.includegit"
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(11))
     }
 }
 
@@ -34,12 +34,12 @@ publishing {
     }
 }
 
-signing {
-    useGpgCmd()
-    publishing.publications.configureEach {
-        sign(this)
-    }
-}
+// signing {
+//     useGpgCmd()
+//     publishing.publications.configureEach {
+//         sign(this)
+//     }
+// }
 
 tasks.withType<Test> {
     useJUnitPlatform()
