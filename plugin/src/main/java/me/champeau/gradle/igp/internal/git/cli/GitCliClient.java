@@ -41,7 +41,7 @@ public class GitCliClient implements GitClientStrategy {
     // very quickly. `git init` (etc) doesn't suffer this same limitation.
     try {
       repoDir.mkdirs();
-      
+
       ops.exec(repoDir, List.of(git, "init"));
       ops.exec(repoDir, List.of(git, "remote", "add", "origin", uri));
       ops.exec(repoDir, List.of(git, "fetch"));
