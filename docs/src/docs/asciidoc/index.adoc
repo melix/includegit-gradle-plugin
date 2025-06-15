@@ -210,7 +210,23 @@ gitRepositories {
 
 NOTE: You may use several `includeBuild` statements from a single repository.
 
+=== Git client and compatibility with the configuration cache [[git-client]]
+
+The plugin uses https://github.com/eclipse-jgit/jgit[jgit] by default, but it can be configured to
+use the local git CLI client instead. The major advantage of this approach is that it is compatible
+with the https://docs.gradle.org/current/userguide/configuration_cache.html[configuration cache].
+
+[source,kotlin,role="multi-language-sample",subs="attributes+"]
+----
+gitRepositories {
+    useGitCli = true
+}
+----
+
 === Authentication
+
+NOTE: Authentication options are ignored if plugin is configured to use the
+<<git-client,git CLI client>>
 
 The plugin supports 3 different authentication mechanisms:
 

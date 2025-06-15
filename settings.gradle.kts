@@ -9,8 +9,6 @@ rootProject.name = "gradle-includegit-plugin"
 include("docs")
 include("plugin")
 
-enableFeaturePreview("VERSION_CATALOGS")
-
 dependencyResolutionManagement {
     repositories {
         mavenCentral()

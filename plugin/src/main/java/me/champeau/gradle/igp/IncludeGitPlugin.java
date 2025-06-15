@@ -24,6 +24,7 @@ public abstract class IncludeGitPlugin implements Plugin<Settings> {
     @Override
     public void apply(Settings settings) {
         GitIncludeExtension gitRepositories = settings.getExtensions().create(GitIncludeExtension.class, "gitRepositories", DefaultIncludeGitExtension.class, settings);
+        gitRepositories.getUseGitCli().convention(false);
         gitRepositories.getCheckoutsDirectory().set(new File(settings.getSettingsDir(), "checkouts"));
         gitRepositories.getRefreshIntervalMillis().convention(
                 forUseAtConfigurationTime(getProviders().systemProperty(REFRESH_GIT_REPOSITORIES_PROPERTY))

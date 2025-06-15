@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.champeau.gradle.igp.internal;
+package me.champeau.gradle.igp.internal.git.jgit;
 
 import me.champeau.gradle.igp.Authentication;
+import me.champeau.gradle.igp.internal.git.cli.GitCliClient;
 import org.gradle.api.Action;
 import org.gradle.api.model.ObjectFactory;
 
@@ -33,6 +34,15 @@ public class DefaultAuthentication implements Authentication {
     @Inject
     public DefaultAuthentication(ObjectFactory objects) {
         this.objects = objects;
+    }
+
+    /**
+     * If {@link GitCliClient} is being used, then authentication is handled by configuring the user environment, and
+     * user-configured authentication by the DSL is ignored. We want to warn users in this case.
+     * @return true if the authentication strategy has been configured via the DSL.
+     */
+    public boolean isUserConfigured() {
+        return keyConfiguration != null || basicAuth != null || sshWithPassword != null;
     }
 
     @Override
