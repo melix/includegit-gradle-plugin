@@ -17,6 +17,12 @@ public interface GitClientStrategy {
       long refreshIntervalMillis
   ) {
     CheckoutMetadata old = checkoutMetadata.get(uri);
+
+    // Can happen when checking out forks.
+    if (old == null) {
+      return false;
+    }
+
     boolean sameRef = Objects.equals(current.getRef(), old.getRef());
     boolean sameBranch = current.getBranch().equals(old.getBranch());
     boolean upToDate = current.getLastUpdate() - old.getLastUpdate() < refreshIntervalMillis;
