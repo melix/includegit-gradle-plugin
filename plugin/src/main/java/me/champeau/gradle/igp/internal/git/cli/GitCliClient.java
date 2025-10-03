@@ -7,8 +7,10 @@ import me.champeau.gradle.igp.internal.CheckoutMetadata;
 import me.champeau.gradle.igp.internal.git.GitClientStrategy;
 import me.champeau.gradle.igp.internal.git.cli.ExecOpsHelper.Result;
 import me.champeau.gradle.igp.internal.git.jgit.DefaultAuthentication;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.process.ExecSpec;
 import org.slf4j.Logger;
 
 public class GitCliClient implements GitClientStrategy {
@@ -16,6 +18,7 @@ public class GitCliClient implements GitClientStrategy {
   private final Logger logger;
   private final String git = "git";
   private final ExecOpsHelper ops;
+  private final Action<ExecSpec> ignoreExitValue = spec -> spec.setIgnoreExitValue(true);
   private final Map<String, CheckoutMetadata> checkoutMetadata;
   private final long refreshIntervalMillis;
 
@@ -42,10 +45,10 @@ public class GitCliClient implements GitClientStrategy {
     try {
       repoDir.mkdirs();
 
-      ops.exec(repoDir, List.of(git, "init"));
-      ops.exec(repoDir, List.of(git, "remote", "add", "origin", uri));
-      ops.exec(repoDir, List.of(git, "fetch"));
-      ops.exec(repoDir, List.of(git, "checkout", getRev(rev, branchOrTag)));
+      ops.exec(repoDir, List.of(git, "init"), ignoreExitValue).assertNormalExitValue();
+      ops.exec(repoDir, List.of(git, "remote", "add", "origin", uri), ignoreExitValue).assertNormalExitValue();
+      ops.exec(repoDir, List.of(git, "fetch"), ignoreExitValue).assertNormalExitValue();
+      ops.exec(repoDir, List.of(git, "checkout", getRev(rev, branchOrTag)), ignoreExitValue).assertNormalExitValue();
     } catch (Exception e) {
       throw new GradleException("Unable to clone repository contents: " + e.getMessage(), e);
     } finally {
@@ -63,27 +66,26 @@ public class GitCliClient implements GitClientStrategy {
     }
 
     try {
-      Result result = ops.exec(repoDir, List.of(git, "symbolic-ref", "HEAD"));
+      Result result = ops.exec(repoDir, List.of(git, "symbolic-ref", "HEAD"), ignoreExitValue);
+      result.assertNormalExitValue();
 
       String fullBranch = result.stdOut.get();
       if (fullBranch.startsWith("refs/heads/")) {
         logger.info("Pulling from {}", uri);
-        ops.exec(repoDir, List.of(git, "pull"));
+        ops.exec(repoDir, List.of(git, "pull"), ignoreExitValue).assertNormalExitValue();
       }
 
       logger.info("Checking out ref {} of {}", rev, uri);
       if (!rev.isEmpty()) {
-        ops.exec(repoDir, List.of(git, "checkout", rev));
+        ops.exec(repoDir, List.of(git, "checkout", rev), ignoreExitValue).assertNormalExitValue();
       } else {
         String resolve = branchOrTag;
 
-        Result revParseResult = ops.exec(
-            repoDir,
-            List.of(git, "rev-parse", "--verify", resolve), spec -> spec.setIgnoreExitValue(true)
-        );
+        Result revParseResult = ops.exec(repoDir, List.of(git, "rev-parse", "--verify", resolve), ignoreExitValue);
 
         if (!revParseResult.isSuccess()) {
-          Result showRefResult = ops.exec(repoDir, List.of(git, "show-ref", "--branches", "--tags"));
+          Result showRefResult = ops.exec(repoDir, List.of(git, "show-ref", "--branches", "--tags"), ignoreExitValue);
+          showRefResult.assertNormalExitValue();
           // If we find `branchOrTag` in the list of all fully-qualified refs, use that, otherwise null and throw below
           resolve = showRefResult.stdOut.get().lines()
               .filter(line -> line.endsWith(branchOrTag))
@@ -92,7 +94,7 @@ public class GitCliClient implements GitClientStrategy {
         }
 
         if (resolve != null) {
-          ops.exec(repoDir, List.of(git, "checkout", resolve));
+          ops.exec(repoDir, List.of(git, "checkout", resolve), ignoreExitValue).assertNormalExitValue();
         } else {
           throw new GradleException("Branch or tag " + branchOrTag + " not found");
         }
