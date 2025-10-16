@@ -31,7 +31,7 @@ class ExecOpsHelper {
 
     void assertNormalExitValue() {
       if (exitCode != 0) {
-        throw new IllegalStateException(String.format("Command failed with exit code %d: %s", exitCode, stdErr));
+        throw new IllegalStateException(String.format("Command failed with exit code %d: %s", exitCode, stdErr.get()));
       }
     }
   }
